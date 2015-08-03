@@ -1,10 +1,11 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html>
-<head> 
-    <title>Locust</title> 
+<head>
+    <title>Locust</title>
     <link rel="stylesheet" type="text/css" href="/static/style.css" media="screen">
     <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
-</head> 
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+</head>
 <body class="{{state}}">
     <div class="top">
         <div class="top_content">
@@ -46,7 +47,7 @@
         </div>
     </div>
     <div class="main">
-        
+
         <div class="start" id="start">
             <div style="position:relative;">
                 <a href="#" class="close_link">Close</a>
@@ -58,6 +59,10 @@
                     <input type="text" name="locust_count" id="locust_count" class="val" /><br>
                     <label for="hatch_rate">Hatch rate <span style="color:#8a8a8a;">(users spawned/second)</span></label>
                     <input type="text" name="hatch_rate" id="hatch_rate" class="val" /><br>
+                    <label for="time_to_run">Specify the time to run the test (time in seconds)</label>
+                    <input type="radio" name="time_to_run" value="forever"> forever
+                    <input type="radio" name="time_to_run" value="time_limited" checked> run for
+                    <input type="text" name="run_time_in_seconds" id="run_time_in_seconds" value="600"/>
                     <input type="image" src="/static/img/start_button.png" value="Start swarming" class="start_button">
                 </form>
                 <div style="clear:right;"></div>
@@ -80,13 +85,14 @@
                 <div style="clear:right;"></div>
             </div>
         </div>
-        
+
         <div class="status" id="status">
             <ul class="tabs">
                 <li><a href="#">Statistics</a></li>
                 <li><a href="#">Failures</a></li>
                 <li><a href="#">Exceptions</a></li>
                 <li><a href="#">Download Data</a></li>
+                <li><a href="#" id="results">Results Summary</a></li>
             </ul>
             <div style="clear:left;"></div>
             <div class="panes">
@@ -139,9 +145,214 @@
                         <a href="/exceptions/csv">Download exceptions CSV</a>
                     </div>
                 </div>
-            </div>
-        </div>
-        
+                <div style="display:none;">
+                      <table id="stats" class="stats">
+                          <thead>
+                              <tr>
+                                  <th class="stats_label" href="#" data-sortkey="method">Type</th>
+                                  <th class="stats_label" href="#" data-sortkey="name">Name</th>
+                                  <th class="stats_label numeric" href="#" data-sortkey="num_requests" title="Number of successful requests"># requests</th>
+                                  <th class="stats_label numeric" href="#" data-sortkey="num_failures" title="Number of failures"># fails</th>
+                                  <th class="stats_label numeric" href="#" data-sortkey="median_response_time" title="Median response time">Median</th>
+                                  <th class="stats_label numeric" href="#" data-sortkey="avg_response_time" title="Average response time">Average</th>
+                                  <th class="stats_label numeric" href="#" data-sortkey="min_response_time" title="Min response time">Min</th>
+                                  <th class="stats_label numeric" href="#" data-sortkey="max_response_time" title="Max response time">Max</th>
+                                  <th class="stats_label numeric" href="#" data-sortkey="avg_content_length" title="Average response size">Content Size</th>
+                                  <th class="stats_label numeric" href="#" data-sortkey="current_rps" title="Current number of requests per second"># reqs/sec</th>
+                                  <th class="stats_label numeric" href="#" data-sortkey="percentile" title="95th Percentile">95th Percentile</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                          </tbody>
+                      </table>
+                      <div class="container">
+
+                        <div class="jumbotron" >
+
+                          <svg id="visualisation" width="2000" height="900"></svg>
+                          <script>
+                function InitChart() {
+		      var data = [{
+                                          "max_time": "150",
+                                          "request": "login"
+                                      }, {
+                                          "max_time": "205",
+
+                                          "request": "joinClass"
+                                      }, {
+                                          "max_time": "156",
+
+                                          "request": "getCourse"
+                                      }, {
+                                          "max_time": "170",
+
+                                          "request": "getUnit"
+                                      }, {
+                                          "max_time": "200",
+
+                                          "request": "getLesson"
+                                      }, {
+                                          "max_time": "170",
+
+                                          "request": "getCollectionItem"
+                                      }, {
+                                          "max_time": "250",
+
+                                          "request": "playCollectionStartEvent"
+                                      }, {
+                                          "max_time": "315",
+
+                                          "request": "playCollectionResourceStartEvent"
+                                      }, {
+                                          "max_time": "170",
+
+                                          "request": "playCollectionResourceStopEvent"
+                                      }, {
+                                          "max_time": "105",
+
+                                          "request": "playCollectionStopEvent"
+                                      }, {
+                                          "max_time": "130",
+
+                                          "request": "collectionSummaryPage"
+                                      }];
+
+
+		  var data2 = [{
+                                          "max_time": "202",
+                                          "request": "login"
+                                      }, {
+                                          "max_time": "215",
+                                          "request": "joinClass"
+                                      }, {
+                                          "max_time": "179",
+                                          "request": "getCourse"
+                                      }, {
+                                          "max_time": "199",
+                                          "request": "getUnit"
+                                      }, {
+                                          "max_time": "134",
+                                          "request": "getLesson"
+                                      }, {
+                                          "max_time": "176",
+                                          "request": "getCollectionItem"
+                                      }, {
+                                          "max_time": "201",
+                                          "request": "playCollectionStartEvent"
+                                      }, {
+                                          "max_time": "300",
+                                          "request": "playCollectionResourceStartEvent"
+                                      }, {
+                                          "max_time": "172",
+                                          "request": "playCollectionResourceStopEvent"
+                                      }, {
+                                          "max_time": "156",
+                                          "request": "playCollectionStopEvent"
+                                      }, {
+                                          "max_time": "135",
+                                          "request": "collectionSummaryPage"
+                                      }];
+
+		    //var xValues = d3.set(data.map(function (d) { return d.Label; }));
+
+                    var vis = d3.select("#visualisation"),
+                        WIDTH = 2000,
+                        HEIGHT = 500,
+                        MARGINS = {
+                            top: 20,
+                            right: 20,
+                            bottom: 20,
+                            left: 50
+                        },
+
+
+
+// Set up the domain using only the unique values for the xAxis
+		      xScale = d3.scale.ordinal().domain(data.map(function(d) { return d.request;})).range([MARGINS.left, 100, 200, 300, 400, 500, 650, 850, 1100, 1350, 1500]),
+                       // xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([2000, 2010]),
+
+                     //  xScale = d3.scale.ordinal().rangeRoundBands([0, WIDTH], .1),
+
+                        yScale = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([134, 215]),
+
+
+
+                        xAxis = d3.svg.axis()
+                        .scale(xScale),
+
+                        yAxis = d3.svg.axis()
+                        .scale(yScale)
+                        .orient("left");
+
+
+
+//                                                 vis.append("text")      // text label for the x axis
+//         .attr("x", 265 )
+//         .attr("y",  240 )
+//         .style("text-anchor", "middle")
+//         .text("Date");
+//
+//
+//
+//
+
+                    vis.append("svg:g")
+                        .attr("class", "x axis")
+                        .attr("transform", "translate(0," + (HEIGHT - MARGINS.bottom) + ")")
+                        .call(xAxis);
+
+                    vis.append("svg:g")
+                        .attr("class", "y axis")
+                        .attr("transform", "translate(" + (MARGINS.left) + ",0)")
+                        .call(yAxis);
+
+                    var lineGen = d3.svg.line()
+                        .x(function(d) {
+                            return xScale(d.request);
+                        })
+                        .y(function(d) {
+                            return yScale(d.max_time);
+                        })
+                        .interpolate("basis");
+
+
+
+
+
+
+
+                    vis.append('svg:path')
+                        .attr('d', lineGen(data))
+                        .attr('stroke', 'green')
+                        .attr('stroke-width', 2)
+                        .attr('fill', 'none');
+
+                    vis.append('svg:path')
+                        .attr('d', lineGen(data2))
+                        .attr('stroke', 'blue')
+                        .attr('stroke-width', 2)
+                        .attr('fill', 'none');
+
+
+                        var xAxis = d3.svg.axis()
+    .scale(xScale)
+    .tickFormat(data.map(function(d) { return d.request;}))
+    .orient("bottom");
+
+                }
+                InitChart();
+            </script>
+                            </div>
+                          </div>
+                        </div>
+
+          </div>
+      </div>
+  </div>
+</div>
+
+
+
         <div class="about" style="display:none;">
             <div style="position:relative;">
                 <a href="#" class="close_link">Close</a>
@@ -149,26 +360,26 @@
             <div class="padder">
                 <h1>About</h1>
                 <p>
-                    The original idea for Locust was Carl Byström's who made a first proof of concept in June 2010. 
+                    The original idea for Locust was Carl Byström's who made a first proof of concept in June 2010.
                     Jonatan Heyman picked up Locust in January 2011, implemented the current concept of Locust classes
                     and made it work distributed across multiple machines.
-                </p>                
+                </p>
                 <p>
-                    Jonatan, Carl and Joakim Hamrén has continued the development of Locust at their job, 
+                    Jonatan, Carl and Joakim Hamrén has continued the development of Locust at their job,
                     ESN Social Software, who have adopted Locust as an inhouse Open Source project.
                 </p>
-                
+
                 <h1>Authors and Copyright</h1>
                 <a href="http://cgbystrom.com/">Carl Byström</a> (<a href="http://twitter.com/cgbystrom/">@cgbystrom</a>)<br>
                 <a href="http://heyman.info/">Jonatan Heyman</a> (<a href="http://twitter.com/jonatanheyman/">@jonatanheyman</a>)<br>
                 Joakim Hamrén (<a href="http://twitter.com/Jahaaja/">@jahaaja</a>)<br>
                 <a href="http://esn.me/">ESN Social Software</a> (<a href="http://twitter.com/uprise_ea/">@uprise_ea</a>)<br>
                 Hugo Heyman (<a href="http://twitter.com/hugoheyman/">@hugoheyman</a>)
-                
-                
+
+
                 <h1>License</h1>
                 Open source licensed under the MIT license.
-                
+
                 <h1>Version</h1>
                 {{version}}<br>
                 <a href="http://locust.io/">http://locust.io</a>
@@ -192,6 +403,7 @@
             <td class="numeric"><%= this.max_response_time %></td>
             <td class="numeric"><%= Math.round(this.avg_content_length) %></td>
             <td class="numeric"><%= Math.round(this.current_rps*100)/100 %></td>
+            <td class="numeric"><%= Math.round(this.percentile)%></td>
         </tr>
         <% alternate = !alternate; %>
         ]]>

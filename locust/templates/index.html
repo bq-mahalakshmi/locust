@@ -5,6 +5,58 @@
     <link rel="stylesheet" type="text/css" href="/static/style.css" media="screen">
     <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <style>
+    #tooltip {
+	position: absolute;
+	width: 50px;
+	height: auto;
+	padding: 10px;
+	background-color: white;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+	-moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+	box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+	pointer-events: none;
+}
+#tooltip.hidden {
+	display: none;
+}
+#tooltip p {
+	margin: 0;
+	font-family: sans-serif;
+	font-size: 12px;
+	line-height: 16px;
+}
+.indent{
+	padding-left: 5px;
+}
+
+rect {
+	-moz-transition: all 0.3s;
+	-webkit-transition: all 0.3s;
+	-o-transition: all 0.3s;
+	transition: all 0.3s;
+}
+rect:hover{
+	fill: orange;
+}
+.axis path,
+.axis line {
+	fill: none;
+	stroke: black;
+	shape-rendering: crispEdges;
+}
+.axis text {
+	font-family: sans-serif;
+	font-size: 11px;
+}
+
+</style>
+
+
+
 </head>
 <body class="{{state}}">
     <div class="top">
@@ -60,10 +112,10 @@
                     <label for="hatch_rate">Hatch rate <span style="color:#8a8a8a;">(users spawned/second)</span></label>
                     <input type="text" name="hatch_rate" id="hatch_rate" class="val" /><br>
                     <label for="time_to_run">Specify the time to run the test (time in seconds)</label>
-                    <input type="radio" name="time_to_run" value="forever"> forever
-                    <input type="radio" name="time_to_run" value="time_limited" checked> run for
-                    <input type="text" name="run_time_in_seconds" id="run_time_in_seconds" value="600"/>
-                    <input type="image" src="/static/img/start_button.png" value="Start swarming" class="start_button">
+                    <input type="radio" name="time_to_run" class="time_to_run" value="forever"> forever
+                    <input type="radio" name="time_to_run" class="time_to_run" id = "run_time" value="time_limited" checked> run for
+                    <input type="text" name="run_time_in_seconds" id="run_time_in_seconds" value="30"/>
+                    <input type="image" src="/static/img/start_button.png" value="Start swarming" id="start_button" class="start_button"/>
                 </form>
                 <div style="clear:right;"></div>
             </div>
@@ -75,12 +127,16 @@
             </div>
             <div class="padder">
                 <h2>Change the locust count</h2>
-                <form action="/swarm" method="POST" id="edit_form">
+                <form action="/swarm" method="POST" id="swarm_form">
                     <label for="locust_count">Number of users to simulate</label>
-                    <input type="text" name="locust_count" id="new_locust_count" class="val" /><br>
+                    <input type="text" name="locust_count" id="locust_count" class="val" /><br>
                     <label for="hatch_rate">Hatch rate <span style="color:#8a8a8a;">(users spawned/second)</span></label>
-                    <input type="text" name="hatch_rate" id="new_hatch_rate" class="val" /><br>
-                    <input type="image" src="/static/img/start_button.png" value="Start swarming" class="start_button">
+                    <input type="text" name="hatch_rate" id="hatch_rate" class="val" /><br>
+                    <label for="time_to_run">Specify the time to run the test (time in seconds)</label>
+                    <input type="radio" name="time_to_run" class="time_to_run" value="forever"> forever
+                    <input type="radio" name="time_to_run" class="time_to_run" id = "run_time" value="time_limited" checked> run for
+                    <input type="text" name="run_time_in_seconds" id="run_time_in_seconds" value="30"/>
+                    <input type="image" src="/static/img/start_button.png" value="Start swarming"  id="edit_button" class="start_button"/>
                 </form>
                 <div style="clear:right;"></div>
             </div>
@@ -165,188 +221,211 @@
                           <tbody>
                           </tbody>
                       </table>
-                      <div class="container">
-
-                        <div class="jumbotron" >
-
-                          <svg id="visualisation" width="2000" height="900"></svg>
-                          <script>
-                function InitChart() {
-		      var data = [{
-                                          "max_time": "150",
-                                          "request": "login"
-                                      }, {
-                                          "max_time": "205",
-
-                                          "request": "joinClass"
-                                      }, {
-                                          "max_time": "156",
-
-                                          "request": "getCourse"
-                                      }, {
-                                          "max_time": "170",
-
-                                          "request": "getUnit"
-                                      }, {
-                                          "max_time": "200",
-
-                                          "request": "getLesson"
-                                      }, {
-                                          "max_time": "170",
-
-                                          "request": "getCollectionItem"
-                                      }, {
-                                          "max_time": "250",
-
-                                          "request": "playCollectionStartEvent"
-                                      }, {
-                                          "max_time": "315",
-
-                                          "request": "playCollectionResourceStartEvent"
-                                      }, {
-                                          "max_time": "170",
-
-                                          "request": "playCollectionResourceStopEvent"
-                                      }, {
-                                          "max_time": "105",
-
-                                          "request": "playCollectionStopEvent"
-                                      }, {
-                                          "max_time": "130",
-
-                                          "request": "collectionSummaryPage"
-                                      }];
+                      <div id="searchVolume">
+                      <script>
+                      var margin = {top: 25, right: 40, bottom: 35, left: 85},
+                            				w = 1000 - margin.left - margin.right,
+                            				h = 450 - margin.top - margin.bottom;
+                      var padding = 10;
+                      var colors =	{0:	["Local", "#377EB8"],1:	["Global", "#4DAF4A"]};
 
 
-		  var data2 = [{
-                                          "max_time": "202",
-                                          "request": "login"
-                                      }, {
-                                          "max_time": "215",
-                                          "request": "joinClass"
-                                      }, {
-                                          "max_time": "179",
-                                          "request": "getCourse"
-                                      }, {
-                                          "max_time": "199",
-                                          "request": "getUnit"
-                                      }, {
-                                          "max_time": "134",
-                                          "request": "getLesson"
-                                      }, {
-                                          "max_time": "176",
-                                          "request": "getCollectionItem"
-                                      }, {
-                                          "max_time": "201",
-                                          "request": "playCollectionStartEvent"
-                                      }, {
-                                          "max_time": "300",
-                                          "request": "playCollectionResourceStartEvent"
-                                      }, {
-                                          "max_time": "172",
-                                          "request": "playCollectionResourceStopEvent"
-                                      }, {
-                                          "max_time": "156",
-                                          "request": "playCollectionStopEvent"
-                                      }, {
-                                          "max_time": "135",
-                                          "request": "collectionSummaryPage"
-                                      }];
+                      var dataset = [
+                            {"request": "login", "max_time": 1400000, "percentile": 673000},
+                            {"request": "joinClass", "max_time": 165000, "percentile": 160000},
+                            {"request": "getCourse", "max_time": 550000, "percentile": 301000},
+                            {"request": "getUnit", "max_time": 15400, "percentile": 12900},
+                            {"request": "getLesson", "max_time": 111600, "percentile": 11500},
+                            {"request": "getCollectionItem", "max_time": 111600, "percentile": 11500},
+                            {"request": "playCollectionStartEvent", "max_time": 1400000, "percentile": 673000},
+                            {"request": "playCollectionResourceStartEvent", "max_time": 165000, "percentile": 160000},
+                            {"request": "playCollectionResourceStopEvent", "max_time": 550000, "percentile": 301000},
+                            {"request": "playCollectionStopEvent", "max_time": 15400, "percentile": 12900},
+                            {"request": "collectionSummaryPage", "max_time": 111600, "percentile": 11500},
+                            {"request": "courseProgress", "max_time": 550000, "percentile": 301000},
+                            {"request": "unitProgress", "max_time": 15400, "percentile": 12900},
+                            {"request": "collectionProgress", "max_time": 111600, "percentile": 11500}];
 
-		    //var xValues = d3.set(data.map(function (d) { return d.Label; }));
+                    var xScale = d3.scale.ordinal()
+                    				.domain(d3.range(dataset.length))
+                    				.rangeRoundBands([0, w], 0.05);
+                    // ternary operator to determine if global or local has a larger scale
+                    var yScale = d3.scale.linear()
+                    				.domain([0, d3.max(dataset, function(d) { return (d.percentile > d.max_time) ? d.percentile : d.max_time;})])
+                    				.range([h, 0]);
+                    var xAxis = d3.svg.axis()
+                    				.scale(xScale)
+                    				.orient("bottom");
+                    var yAxis = d3.svg.axis()
+                    				.scale(yScale)
+                    				.orient("left")
+                    				.ticks(5);
 
-                    var vis = d3.select("#visualisation"),
-                        WIDTH = 2000,
-                        HEIGHT = 500,
-                        MARGINS = {
-                            top: 20,
-                            right: 20,
-                            bottom: 20,
-                            left: 50
-                        },
+                    var max_time = function(d) {
+                    	return d.max_time;
+                    };
+                    var cpc = function(d) {
+                    	return d.cpc;
+                    };
 
+                    var commaFormat = d3.format(',');
 
+                    //SVG element
+                    var svg = d3.select("#searchVolume")
+                    			.append("svg")
+                    			.attr("width", "1000")
+                    			.attr("height", "550")
+                    			.append("g")
+                    			.attr("transform", "translate(" + margin.left + "," + 35 + ")");
 
-// Set up the domain using only the unique values for the xAxis
-		      xScale = d3.scale.ordinal().domain(data.map(function(d) { return d.request;})).range([MARGINS.left, 100, 200, 300, 400, 500, 650, 850, 1100, 1350, 1500]),
-                       // xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([2000, 2010]),
+                    // Graph Bars
+                    var sets = svg.selectAll(".set")
+                    	.data(dataset)
+                    	.enter()
+                    	.append("g")
+                        .attr("class","set")
+                        .attr("transform",function(d,i){
+                             return "translate(" + xScale(i) + ",0)";
+                         })
+                    	;
+                    var xAxis = d3.svg.axis()
+                        .scale(xScale)
+                        .tickFormat(function(d) { return dataset[d].request; })
+                        .orient("bottom");
 
-                     //  xScale = d3.scale.ordinal().rangeRoundBands([0, WIDTH], .1),
-
-                        yScale = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([134, 215]),
-
-
-
-                        xAxis = d3.svg.axis()
-                        .scale(xScale),
-
-                        yAxis = d3.svg.axis()
-                        .scale(yScale)
-                        .orient("left");
-
-
-
-//                                                 vis.append("text")      // text label for the x axis
-//         .attr("x", 265 )
-//         .attr("y",  240 )
-//         .style("text-anchor", "middle")
-//         .text("Date");
-//
-//
-//
-//
-
-                    vis.append("svg:g")
-                        .attr("class", "x axis")
-                        .attr("transform", "translate(0," + (HEIGHT - MARGINS.bottom) + ")")
-                        .call(xAxis);
-
-                    vis.append("svg:g")
-                        .attr("class", "y axis")
-                        .attr("transform", "translate(" + (MARGINS.left) + ",0)")
-                        .call(yAxis);
-
-                    var lineGen = d3.svg.line()
-                        .x(function(d) {
-                            return xScale(d.request);
+                    sets.append("rect")
+                        .attr("class","percentile")
+                    	.attr("width", xScale.rangeBand()/2)
+                    	.attr("y", function(d) {
+                    		return yScale(d.percentile);
+                    	})
+                        .attr("x", xScale.rangeBand()/2)
+                        .attr("height", function(d){
+                            return h - yScale(d.percentile);
                         })
-                        .y(function(d) {
-                            return yScale(d.max_time);
+                    	.attr("fill", colors[0][1])
+                    	.append("text")
+                       .text(function(d) {
+                    		return commaFormat(d.percentile);
+                       })
+                       .attr("text-anchor", "middle")
+                       .attr("x", function(d, i) {
+                    		return xScale(i) + xScale.rangeBand() / 2;
+                       })
+                       .attr("y", function(d) {
+                    		return h - yScale(d.percentile) + 14;
+                       })
+                       .attr("font-family", "sans-serif")
+                       .attr("font-size", "11px")
+                       .attr("fill", "black")
+                       	;
+
+                    sets.append("rect")
+                        .attr("class","max_time")
+                    	.attr("width", xScale.rangeBand()/2)
+                    	.attr("y", function(d) {
+                    		return yScale(d.max_time);
+                    	})
+                        .attr("height", function(d){
+                            return h - yScale(d.max_time);
                         })
-                        .interpolate("basis");
+                    	.attr("fill", colors[1][1])
+                    	.append("text")
+                    	.text(function(d) {
+                    		return commaFormat(d.max_time);
+                    	})
+                    	.attr("text-anchor", "middle")
+                    	.attr("x", function(d, i) {
+                    		return xScale(i) + xScale.rangeBand() / 2;
+                    	})
+                    	.attr("y", function(d) {
+                    		return h - yScale(d.max_time) + 14;
+                    	})
+                    	.attr("font-family", "sans-serif")
+                    	.attr("font-size", "7px")
+                    	.attr("fill", "red")
+                    	;
+
+                    // xAxis
+                    svg.append("g") // Add the X Axis
+                    	.attr("class", "x axis")
+                    	.attr("transform", "translate(0," + (h) + ")")
+                    	.call(xAxis)
+
+                    .selectAll("text") .style("text-anchor", "end") .attr("dx", "-.8em") .attr("dy", ".15em") .attr("transform", "rotate(-50)" );
+
+                    		;
+                    // yAxis
+                    svg.append("g")
+                    	.attr("class", "y axis")
+                    	.attr("transform", "translate(0 ,0)")
+                    	.call(yAxis)
+                    	;
+                    // xAxis label
+                    svg.append("text")
+                    	.attr("transform", "translate(" + (w / 2) + " ," + (h + margin.bottom - 5) +")")
+                    	.style("text-anchor", "middle");
+                    	//.text("Keyword");
+                    //yAxis label
+                    svg.append("text")
+                    		.attr("transform", "rotate(-90)")
+                    		.attr("y", 0 - margin.left)
+                    		.attr("x", 0 - (h / 2))
+                    		.attr("dy", "1em")
+                    		.style("text-anchor", "middle");
+                    		//.text("Searches");
+
+                    // Title
+                    svg.append("text")
+                    		.attr("x", (w / 2))
+                    		.attr("y", 0 - (margin.top / 2))
+                    		.attr("text-anchor", "middle")
+                    		.style("font-size", "16px")
+                    		.style("text-decoration", "underline");
+                    	//	.text("Global & Local Searches");
 
 
+                    // add legend
+                    var legend = svg.append("g")
+                    		.attr("class", "legend")
+                    		//.attr("x", w - 65)
+                    		//.attr("y", 50)
+                    		.attr("height", 100)
+                    		.attr("width", 100)
+                    		.attr('transform', 'translate(-20,50)');
 
 
+                    legend.selectAll('rect')
+                    		.data(dataset)
+                    		.enter()
+                    		.append("rect")
+                    		.attr("x", w - 65)
+                    		.attr("y", function(d, i) {
+                    			return i * 20;
+                    		})
+                    		.attr("width", 10)
+                    		.attr("height", 10)
+                    		.style("fill", function(d) {
+                    			var color = colors[dataset.indexOf(d)][1];
+                    			return color;
+                    		});
 
-
-
-                    vis.append('svg:path')
-                        .attr('d', lineGen(data))
-                        .attr('stroke', 'green')
-                        .attr('stroke-width', 2)
-                        .attr('fill', 'none');
-
-                    vis.append('svg:path')
-                        .attr('d', lineGen(data2))
-                        .attr('stroke', 'blue')
-                        .attr('stroke-width', 2)
-                        .attr('fill', 'none');
-
-
-                        var xAxis = d3.svg.axis()
-    .scale(xScale)
-    .tickFormat(data.map(function(d) { return d.request;}))
-    .orient("bottom");
-
-                }
-                InitChart();
-            </script>
-                            </div>
-                          </div>
-                        </div>
-
-          </div>
+                    legend.selectAll('text')
+                    		.data(dataset)
+                    		.enter()
+                    		.append("text")
+                    		.attr("x", w - 52)
+                    		.attr("y", function(d, i) {
+                    			return i * 20 + 9;
+                    		})
+                    		.text(function(d) {
+                    			var text = colors[dataset.indexOf(d)][0];
+                    			return text;
+                    		});
+                      </script>
+                    </div>
+                </div>
+              </div>
       </div>
   </div>
 </div>

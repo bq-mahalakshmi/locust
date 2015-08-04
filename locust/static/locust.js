@@ -19,6 +19,19 @@ $("#box_reset a").click(function(event) {
     $.get($(this).attr("href"));
 });
 
+$(".start_button").click(function() {
+    var run_time = $("#run_time_in_seconds").val();
+    var getValue = $('.time_to_run:checked').val();
+    if (getValue != 'forever') {
+    setTimeout(alertFunc, run_time * 1000);
+    }
+});
+
+function alertFunc() {
+  $("#box_stop a")[0].click();
+}
+
+
 $("#new_test").click(function(event) {
     event.preventDefault();
     $("#start").show();

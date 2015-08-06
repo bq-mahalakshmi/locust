@@ -6,6 +6,7 @@ import random
 import logging
 from time import time
 from hashlib import md5
+import uuid
 
 import gevent
 from gevent import GreenletExit
@@ -273,6 +274,7 @@ class MasterLocustRunner(DistributedLocustRunner):
         slave_num_clients = locust_count / (num_slaves or 1)
         slave_hatch_rate = float(hatch_rate) / (num_slaves or 1)
         remaining = locust_count % num_slaves
+        self.job_id = str(uuid.uuid4())
 
         logger.info("Sending hatch jobs to %d ready clients", num_slaves)
 
@@ -287,6 +289,7 @@ class MasterLocustRunner(DistributedLocustRunner):
                 "num_clients":slave_num_clients,
                 "num_requests": self.num_requests,
                 "host":self.host,
+                "test_id":self.test_id,
                 "stop_timeout":None
             }
 
@@ -328,7 +331,7 @@ class MasterLocustRunner(DistributedLocustRunner):
                 events.slave_report.fire(client_id=msg.node_id, data=msg.data)
             elif msg.type == "hatching":
                 if msg.node_id in self.clients:
-                   self.clients[msg.node_id].state = STATE_HATCHING
+                    self.clients[msg.node_id].state = STATE_HATCHING
             elif msg.type == "hatch_complete":
                 self.clients[msg.node_id].state = STATE_RUNNING
                 self.clients[msg.node_id].user_count = msg.data["count"]
@@ -353,6 +356,7 @@ class SlaveLocustRunner(DistributedLocustRunner):
 
         self.client = rpc.Client(self.master_host, self.master_port)
         self.greenlet = Group()
+        self.job_id = None
 
         self.greenlet.spawn(self.worker).link_exception(callback=self.noop)
         self.client.send(Message("client_ready", None, self.client_id))
@@ -389,6 +393,7 @@ class SlaveLocustRunner(DistributedLocustRunner):
                 #self.num_clients = job["num_clients"]
                 self.num_requests = job["num_requests"]
                 self.host = job["host"]
+                self.job_id = job["job_id"]
                 self.hatching_greenlet = gevent.spawn(lambda: self.start_hatching(locust_count=job["num_clients"], hatch_rate=job["hatch_rate"]))
             elif msg.type == "stop":
                 self.stop()

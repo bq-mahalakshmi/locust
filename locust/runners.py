@@ -289,7 +289,7 @@ class MasterLocustRunner(DistributedLocustRunner):
                 "num_clients":slave_num_clients,
                 "num_requests": self.num_requests,
                 "host":self.host,
-                "test_id":self.test_id,
+                "job_id":self.job_id,
                 "stop_timeout":None
             }
 

@@ -4,8 +4,10 @@
     <title>Locust</title>
     <link rel="stylesheet" type="text/css" href="/static/style.css" media="screen">
     <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+    <link href="/static/nv.d3.css" rel="stylesheet" type="text/css">
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <style>
+
     #tooltip {
 	position: absolute;
 	width: 50px;
@@ -54,6 +56,34 @@ rect:hover{
   fill:white;
 }
 
+</style>
+<style>
+
+    .tick line {
+      display: none;
+    }
+  </style>
+<style>
+body { font: 12px Arial;}
+
+path {
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.maximum {
+    stroke-width: 1;
+    stroke: green;
+}
 </style>
 
 
@@ -130,9 +160,9 @@ rect:hover{
                 <h2>Change the locust count</h2>
                 <form action="/swarm" method="POST" id="swarm_form">
                     <label for="locust_count">Number of users to simulate</label>
-                    <input type="text" name="locust_count" id="locust_count" class="val" /><br>
+                    <input type="text" name="locust_count" id="new_locust_count" class="val" /><br>
                     <label for="hatch_rate">Hatch rate <span style="color:#8a8a8a;">(users spawned/second)</span></label>
-                    <input type="text" name="hatch_rate" id="hatch_rate" class="val" /><br>
+                    <input type="text" name="hatch_rate" id="new_hatch_rate" class="val" /><br>
                     <label for="time_to_run">Specify the time to run the test (time in seconds)</label>
                     <input type="radio" name="time_to_run" class="time_to_run" value="forever"> forever
                     <input type="radio" name="time_to_run" class="time_to_run" id = "run_time" value="time_limited" checked> run for
@@ -231,6 +261,12 @@ rect:hover{
 
 
                     </div>
+                    <svg id="loadChart"></svg>
+
+		<svg id="requestChart"></svg>
+
+
+
 
 
 
@@ -279,6 +315,7 @@ rect:hover{
     <script type="text/javascript" src="/static/jquery-1.4.min.js"></script>
     <script type="text/javascript" src="/static/jquery.jqote2.min.js"></script>
     <script type="text/javascript" src="/static/jquery.tools.min.js"></script>
+    <script type="text/javascript" src="/static/nv.d3.js"></script>
     <script type="text/x-jqote-template" id="stats-template">
         <![CDATA[
         <tr class="<%=(alternate ? "dark" : "")%> <%=(this.name == "Total" ? "total" : "")%>">
@@ -326,6 +363,9 @@ $(document).ready(function (){
   $('#results').click(function(){
     $.get('/stats/requests', function (data) {
         updateData(data);
+    });
+    $.get('/stats-summary', function(data) {
+        updateLineChart(data);
     });
   });
 
@@ -516,8 +556,85 @@ var legend = svg.append("g")
  var text = colors[dataset.indexOf(d)][0];
  return text;
 });
+}
+function updateLineChart(data) {
+  var loadGraphArray = [];
+				var requestGraphArray = [];
+        var flagRequest = 0;
+        var flagLoad = 0;
+				var data = data;
+				for (indexValue in data) {
+					var keyValue = data[indexValue].key;
+					var gObj = {};
+					gObj.key = keyValue.replace(/\load./g, '');
+					gObj.values = data[indexValue].values;
+
+					if (data[indexValue].values.length > 0) {
+            flagRequest++;
+
+						if (keyValue == 'requests_processed') {
+                flagLoad++;
+							requestGraphArray.push(gObj);
+						} else {
+							loadGraphArray.push(gObj);
+						}
+					}
+				}
+
+				var chartId1 = 'loadChart';
+				var chartId2 = 'requestChart';
+      /*  if(flagLoad> 0){
+          	chart.renderChart(chartId1, loadGraphArray);
+        }
+        if(flagRequest> 0){
+          	chart.renderChart(chartId2, requestGraphArray);
+        }*/
+        	chart.renderChart(chartId1, loadGraphArray);
+          chart.renderChart(chartId2, requestGraphArray);
+
+			//	chart.renderChart(chartId2, requestGraphArray);
+
+
 
 }
+var chart = {
+				renderChart : function(chartId, histcatexplong) {
+					$('#' + chartId).empty();
+					var colors = d3.scale.category20();
+					var chart;
+					nv.addGraph(function() {
+						chart = nv.models.stackedAreaChart().useInteractiveGuideline(true).x(function(d) {
+							return d[0]
+						}).y(function(d) {
+							return d[1]
+						}).controlLabels({
+							stacked : "Stacked"
+						}).duration(300);
+
+						chart.xAxis.tickFormat(function(d) {
+              d= parseInt(d);
+							return d3.time.format('%X')(new Date(d))
+							//return "ggggG"
+						});
+						chart.yAxis.tickFormat(d3.format(',.1f'));
+
+						chart.legend.vers('furious');
+
+						d3.select('#' + chartId).datum(histcatexplong).transition().duration(1000).call(chart).each('start', function() {
+							setTimeout(function() {
+								d3.selectAll('#' + chartId + ' *').each(function() {
+									if (this.__transition__)
+										this.__transition__.duration = 1;
+								})
+							}, 0)
+						});
+
+						nv.utils.windowResize(chart.update);
+						return chart;
+					});
+				}
+			}
+
 </script>
 
 

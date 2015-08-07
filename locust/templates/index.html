@@ -8,83 +8,68 @@
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <style>
 
-    #tooltip {
-	position: absolute;
-	width: 50px;
-	height: auto;
-	padding: 10px;
-	background-color: white;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	border-radius: 10px;
-	-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
-	-moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
-	box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
-	pointer-events: none;
-}
-#tooltip.hidden {
-	display: none;
-}
-#tooltip p {
-	margin: 0;
-	font-family: sans-serif;
-	font-size: 12px;
-	line-height: 16px;
-}
-.indent{
-	padding-left: 5px;
-}
-
-rect {
-	-moz-transition: all 0.3s;
-	-webkit-transition: all 0.3s;
-	-o-transition: all 0.3s;
-	transition: all 0.3s;
-}
-rect:hover{
-	fill: orange;
-}
-.axis path,
-.axis line {
-	fill: none;
-	stroke: white;
-	shape-rendering: crispEdges;
-}
-.axis text {
-	font-family: sans-serif;
-	font-size: 11px;
-  fill:white;
-}
-
-</style>
-<style>
-
-    .tick line {
-      display: none;
-    }
-  </style>
-<style>
-body { font: 12px Arial;}
-
-path {
-    stroke: steelblue;
-    stroke-width: 2;
-    fill: none;
-}
-
-.axis path,
-.axis line {
-    fill: none;
-    stroke: grey;
-    stroke-width: 1;
-    shape-rendering: crispEdges;
-}
-
-.maximum {
-    stroke-width: 1;
-    stroke: green;
-}
-</style>
+    <style>
+  			body {
+  				background: #000;
+  			}
+  			.tick line {
+  				display: block;
+  				opacity: 0.1;
+  			}
+  			.graph_container {
+  				flaot: left;
+  				width: 100%;
+          float: left;
+  			}
+  			.graph_container .area_chart, .graph_container .area_chart1 {
+  				float: left;
+  				width: 90%;
+          margin:0px 0px 20px 5%;
+  				border: 1px solid #fff;
+  			}
+  			.area_chart svg {
+  				width: 100%;
+  				height: 250px;
+  				display: block;
+  			}
+        .area_chart1 svg {
+  				width: 100%;
+  				display: block;
+  			}
+  			.toolTipContent {
+  				float: left;
+  				margin: 5 20px;
+  			}
+  			.titleContentTitle {
+  				float: left;
+  				width: 100%;
+  				clear: both;
+  				text-align: left;
+  				font-weight: bold;
+  			}
+  			.tooltipIcon {
+  				float: left;
+  				height: 15px;
+  				width: 15px;
+  			}
+  			.titleContentDiv {
+  				width: 98%;
+  				clear: both;
+  				margin: 0 1%;
+  			}
+  			text {
+  				fill: white;
+  			}
+        .chart_title{
+          float: left;
+          width: 100%;
+          text-align: center;
+          font-weight: bold;
+          border-bottom: 1px solid #fff;
+          height: 25px;
+          line-height: 25px;
+        }
+  		</style>
 
 
 
@@ -255,16 +240,21 @@ path {
                       </table>
 
 
-                      <div id="searchVolume">
 
+                    <div class="graph_container">
 
-
-
-                    </div>
-                    <svg id="loadChart"></svg>
-
-		<svg id="requestChart"></svg>
-
+                      <div class="area_chart1" id="" style="height:350px">
+                        <div class="chart_title"> Percentile </div>
+                        <div id="searchVolume"></div>
+                      </div>
+                			<div class="area_chart">
+                        <div class="chart_title"> Load </div>
+                				<svg id="loadChart"></svg>
+                			</div>
+                			<div class="area_chart">
+                          <div class="chart_title"> Requests </div>
+                				<svg id="requestChart"></svg>
+                			</div>
 
 
 
@@ -394,19 +384,20 @@ $(document).ready(function (){
 
 
 function updategraph(dataset){
-
+console.log(dataset);
 $('#searchVolume').empty();
-var margin = {top: 25, right: 40, bottom: 35, left: 85},
-              w = 1000 - margin.left - margin.right,
-              h = 450 - margin.top - margin.bottom;
+var widthContent = $('#searchVolume').width();
+var margin = {top: 25, right: 10, bottom: 35, left: 100},
+              w = widthContent - margin.left - margin.right,
+              h = 250 - margin.top - margin.bottom;
 var padding = 10;
 var colors =	{0:	["Local", "#377EB8"],1:	["Global", "#4DAF4A"]};
-var svg = d3.select("#searchVolume")
+var svg = d3.select("#searchVolume ")
     .append("svg")
-    .attr("width", "1000")
-    .attr("height", "550")
+    .attr("width", "95%")
+    .attr("height", "500px")
     .append("g")
-    .attr("transform", "translate(" + margin.left + "," + 35 + ")");
+    .attr("transform", "translate(" + margin.left + "," + 55 + ")");
 
 
   var xScale = d3.scale.ordinal()
@@ -506,9 +497,7 @@ svg.append("g") // Add the X Axis
 .attr("transform", "translate(0," + (h) + ")")
 .call(xAxis)
 
-.selectAll("text") .style("text-anchor", "end") .attr("dx", "-.8em") .attr("dy", ".15em") .attr("transform", "rotate(-50)" );
-
-  ;
+.selectAll("text") .style("text-anchor", "end") .attr("dx", "-.8em") .attr("dy", ".15em") .attr("transform", "rotate(-20)" );
 // yAxis
 svg.append("g")
 .attr("class", "y axis")
@@ -560,65 +549,123 @@ var legend = svg.append("g")
 function updateLineChart(data) {
   var loadGraphArray = [];
 				var requestGraphArray = [];
-        var flagRequest = 0;
-        var flagLoad = 0;
-				var data = data;
+				var flagRequest = 0;
+				var flagLoag = 0;
+
 				for (indexValue in data) {
 					var keyValue = data[indexValue].key;
 					var gObj = {};
-					gObj.key = keyValue.replace(/\load./g, '');
-					gObj.values = data[indexValue].values;
+					//gObj.key = keyValue.replace(/\load./g, '').replace(/\-/g, ' ').replace(/\_/g, ' ').toLowerCase().replace(/(?:_| |\b)(\w)/g, function(str, p1) {
+					//	return ' ' + p1.toUpperCase();
+					//});
+
+					gObj.key = keyValue.replace(/\load./g, '').replace(/\-/g, ' ');
+
+					var graphValues = data[indexValue].values;
+					var sortgraphValues = graphValues.sort(function(a, b) {
+						var valueA, valueB;
+						valueA = a[0];
+						valueB = b[0];
+						if (valueA < valueB) {
+							return -1;
+						} else if (valueA > valueB) {
+							return 1;
+						}
+						return 0;
+					});
+					gObj.values = sortgraphValues;
 
 					if (data[indexValue].values.length > 0) {
-            flagRequest++;
-
 						if (keyValue == 'requests_processed') {
-                flagLoad++;
+							flagRequest = (data[indexValue].values.length > 1) ? 1 : 0;
 							requestGraphArray.push(gObj);
 						} else {
+							flagLoag = (data[indexValue].values.length > 1) ? 1 : 0;
 							loadGraphArray.push(gObj);
 						}
 					}
 				}
 
+				var config = [{
+					"loadSetting" : {
+						"yLabel" : "Load (max)",
+						"xLabel" : "Time",
+						"id" : "loadChart"
+					},
+					"requestSetting" : {
+						"yLabel" : "Request (count) ",
+						"xLabel" : "Time",
+						"id" : "requestChart"
+					},
+					"memorySetting" : {
+						"yLabel" : "Memory ",
+						"xLabel" : "Time",
+						"id" : "requestChart"
+					}
+				}];
+
 				var chartId1 = 'loadChart';
-				var chartId2 = 'requestChart';
-      /*  if(flagLoad> 0){
-          	chart.renderChart(chartId1, loadGraphArray);
-        }
-        if(flagRequest> 0){
-          	chart.renderChart(chartId2, requestGraphArray);
-        }*/
-        	chart.renderChart(chartId1, loadGraphArray);
-          chart.renderChart(chartId2, requestGraphArray);
+				var chartId2 = 'requestChart'
+				if (flagLoag) {
+					var dataDetails = {};
+					dataDetails.data = loadGraphArray;
+					dataDetails.config = config[0].loadSetting;
+					//chart.renderChart(chartId1, loadGraphArray);
+					chart.renderChart(dataDetails);
+				}
+				if (flagRequest) {
+					var dataDetails = {};
+					dataDetails.data = requestGraphArray;
+					dataDetails.config = config[0].requestSetting;
+					//chart.renderChart(chartId2, requestGraphArray);
+					chart.renderChart(dataDetails);
+				}
+			}
 
-			//	chart.renderChart(chartId2, requestGraphArray);
+			var chart = {
+				renderChart : function(dataInfo) {
+					var chartId = dataInfo.config.id
+					var histcatexplong = dataInfo.data;
+					var yLabel = dataInfo.config.yLabel;
+					var xLabel = dataInfo.config.xLabel;
 
-
-
-}
-var chart = {
-				renderChart : function(chartId, histcatexplong) {
 					$('#' + chartId).empty();
 					var colors = d3.scale.category20();
 					var chart;
 					nv.addGraph(function() {
-						chart = nv.models.stackedAreaChart().useInteractiveGuideline(true).x(function(d) {
+						chart = nv.models.stackedAreaChart().showControls(false).useInteractiveGuideline(true).x(function(d) {
 							return d[0]
 						}).y(function(d) {
 							return d[1]
 						}).controlLabels({
 							stacked : "Stacked"
 						}).duration(300);
+						chart.yAxis.axisLabel(yLabel);
+						chart.xAxis.axisLabel(xLabel);
 
 						chart.xAxis.tickFormat(function(d) {
-              d= parseInt(d);
+							d = parseInt(d);
+							//console.log(d);
 							return d3.time.format('%X')(new Date(d))
-							//return "ggggG"
+							//return "ggggG
 						});
+
 						chart.yAxis.tickFormat(d3.format(',.1f'));
 
 						chart.legend.vers('furious');
+
+						/*
+						 chart.interactiveLayer.tooltip.contentGenerator(function(data) {
+						 var html = "<div class='toolTipContent'>";
+						 html += "<div class='titleContentTitle'> " + data.value + "</div>";
+						 var series = data.series;
+						 for (i in series) {
+						 html += "<div class='titleContentDiv'><span class='tooltipIcon' style='border:1px solid #ddd;background : " + series[i].color + "'></span><span class='titleContentText'> " + series[i].key + "</span></div>";
+						 }
+
+						 html += "</div>";
+						 return html;
+						 });*/
 
 						d3.select('#' + chartId).datum(histcatexplong).transition().duration(1000).call(chart).each('start', function() {
 							setTimeout(function() {
@@ -632,8 +679,9 @@ var chart = {
 						nv.utils.windowResize(chart.update);
 						return chart;
 					});
+
 				}
-			}
+}
 
 </script>
 

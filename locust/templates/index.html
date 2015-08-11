@@ -1,553 +1,445 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Locust</title>
-    <link rel="stylesheet" type="text/css" href="/static/style.css" media="screen">
-    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
-    <link href="/static/nv.d3.css" rel="stylesheet" type="text/css">
-    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-    <style>
+	<head>
+		<title>Locust</title>
+		<link rel="stylesheet" type="text/css" href="/static/style.css" media="screen">
+		<link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon"/>
+		<link href="/static/nv.d3.css" rel="stylesheet" type="text/css">
+		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
-    <style>
-  			body {
-  				background: #000;
-  			}
-  			.tick line {
-  				display: block;
-  				opacity: 0.1;
-  			}
-  			.graph_container {
-  				flaot: left;
-  				width: 100%;
-          float: left;
-  			}
-  			.graph_container .area_chart, .graph_container .area_chart1 {
-  				float: left;
-  				width: 90%;
-          margin:0px 0px 20px 5%;
-  				border: 1px solid #fff;
-  			}
-  			.area_chart svg {
-  				width: 100%;
-  				height: 250px;
-  				display: block;
-  			}
-        .area_chart1 svg {
-  				width: 100%;
-  				display: block;
-  			}
-  			.toolTipContent {
-  				float: left;
-  				margin: 5 20px;
-  			}
-  			.titleContentTitle {
-  				float: left;
-  				width: 100%;
-  				clear: both;
-  				text-align: left;
-  				font-weight: bold;
-  			}
-  			.tooltipIcon {
-  				float: left;
-  				height: 15px;
-  				width: 15px;
-  			}
-  			.titleContentDiv {
-  				width: 98%;
-  				clear: both;
-  				margin: 0 1%;
-  			}
-  			text {
-  				fill: white;
-  			}
-        .chart_title{
-          float: left;
-          width: 100%;
-          text-align: center;
-          font-weight: bold;
-          border-bottom: 1px solid #fff;
-          height: 25px;
-          line-height: 25px;
-        }
-  		</style>
+	</head>
+	<body class="{{state}}">
+		<div class="top">
+			<div class="top_content">
+				<img src="/static/img/logo.png" class="logo" onclick="$('.about').fadeIn();" />
+				<div class="boxes">
+					<div class="top_box box_status">
+						<div class="label">
+							STATUS
+						</div>
+						<div class="value" id="status_text">
+							{{state}}
+						</div>
+						<div class="user_count">
+							<span id="userCount">{{user_count}}</span> users
+						</div>
+						<a href="#" class="new_test" id="new_test">New test</a>
+						<a href="#" class="edit_test">Edit</a>
+					</div>
+					{% if is_distributed %}
+					<div class="top_box box_slaves" id="box_rps">
+						<div class="label">
+							SLAVES
+						</div>
+						<div class="value" id="slaveCount">
+							{{slave_count}}
+						</div>
+					</div>
+					{% endif %}
+					<div class="top_box box_rps box_running" id="box_rps">
+						<div class="label">
+							RPS
+						</div>
+						<div class="value" id="total_rps">
+							0
+						</div>
+					</div>
+					<div class="top_box box_fail box_running" id="box_fail">
+						<div class="label">
+							FAILURES
+						</div>
+						<div class="value">
+							<span id="fail_ratio"></span>%
+						</div>
+					</div>
+					<div class="top_box box_slaves" id="box_rps">
+						<div class="label">
+							REQUESTS
+						</div>
+						<div class="value" id="slaveCount">
+							{{slave_count}}
+						</div>
+					</div>
+					<div class="top_box box_stop box_running" id="box_stop">
+						<a href="/stop"><img src="/static/img/stop.png" style="border:0;"></a>
+					</div>
+					<div class="top_box box_stop box_running" id="box_reset">
+						<a href="/stats/reset">Reset Stats</a>
+					</div>
+				</div>
+				<div style="clear:both;"></div>
+			</div>
+		</div>
+		<div class="main">
 
+			<div class="start" id="start">
+				<div style="position:relative;">
+					<a href="#" class="close_link">Close</a>
+				</div>
+				<div class="padder">
+					<h2>Start new Locust swarm</h2>
+					<form action="/swarm" method="POST" id="swarm_form">
+						<label for="locust_count">Number of users to simulate</label>
+						<input type="text" name="locust_count" id="locust_count" class="val" />
+						<br>
+						<label for="hatch_rate">Hatch rate <span style="color:#8a8a8a;">(users spawned/second)</span></label>
+						<input type="text" name="hatch_rate" id="hatch_rate" class="val" />
+						<br>
+						<label for="time_to_run">Specify the time to run the test (time in seconds)</label>
+						<input type="radio" name="time_to_run" class="time_to_run" value="forever">
+						forever
+						<input type="radio" name="time_to_run" class="time_to_run" id = "run_time" value="time_limited" checked>
+						run for
+						<input type="text" name="run_time_in_seconds" id="run_time_in_seconds" value="30"/>
+						<input type="image" src="/static/img/start_button.png" value="Start swarming" id="start_button" class="start_button"/>
+					</form>
+					<div style="clear:right;"></div>
+				</div>
+			</div>
 
+			<div class="edit" id="edit">
+				<div style="position:relative;">
+					<a href="#" class="close_link">Close</a>
+				</div>
+				<div class="padder">
+					<h2>Change the locust count</h2>
+					<form action="/swarm" method="POST" id="swarm_form">
+						<label for="locust_count">Number of users to simulate</label>
+						<input type="text" name="locust_count" id="new_locust_count" class="val" />
+						<br>
+						<label for="hatch_rate">Hatch rate <span style="color:#8a8a8a;">(users spawned/second)</span></label>
+						<input type="text" name="hatch_rate" id="new_hatch_rate" class="val" />
+						<br>
+						<label for="time_to_run">Specify the time to run the test (time in seconds)</label>
+						<input type="radio" name="time_to_run" class="time_to_run" value="forever">
+						forever
+						<input type="radio" name="time_to_run" class="time_to_run" id = "run_time" value="time_limited" checked>
+						run for
+						<input type="text" name="run_time_in_seconds" id="run_time_in_seconds" value="30"/>
+						<input type="image" src="/static/img/start_button.png" value="Start swarming"  id="edit_button" class="start_button"/>
+					</form>
+					<div style="clear:right;"></div>
+				</div>
+			</div>
 
-</head>
-<body class="{{state}}">
-    <div class="top">
-        <div class="top_content">
-            <img src="/static/img/logo.png" class="logo" onclick="$('.about').fadeIn();" />
-            <div class="boxes">
-                <div class="top_box box_status">
-                    <div class="label">STATUS</div>
-                    <div class="value" id="status_text">
-                        {{state}}
-                    </div>
-                    <div class="user_count">
-                        <span id="userCount">{{user_count}}</span> users
-                    </div>
-                    <a href="#" class="new_test" id="new_test">New test</a>
-                    <a href="#" class="edit_test">Edit</a>
-                </div>
-                {% if is_distributed %}
-                    <div class="top_box box_slaves" id="box_rps">
-                        <div class="label">SLAVES</div>
-                        <div class="value" id="slaveCount">{{slave_count}}</div>
-                    </div>
-                {% endif %}
-                <div class="top_box box_rps box_running" id="box_rps">
-                    <div class="label">RPS</div>
-                    <div class="value" id="total_rps">0</div>
-                </div>
-                <div class="top_box box_fail box_running" id="box_fail">
-                    <div class="label">FAILURES</div>
-                    <div class="value"><span id="fail_ratio"></span>%</div>
-                </div>
-                <div class="top_box box_stop box_running" id="box_stop">
-                    <a href="/stop"><img src="/static/img/stop.png" style="border:0;"></a>
-                </div>
-                <div class="top_box box_stop box_running" id="box_reset">
-                    <a href="/stats/reset">Reset Stats</a>
-                </div>
-            </div>
-            <div style="clear:both;"></div>
-        </div>
-    </div>
-    <div class="main">
+			<div class="status" id="status">
+				<ul class="tabs">
+					<li>
+						<a href="#">Statistics</a>
+					</li>
+					<li>
+						<a href="#">Failures</a>
+					</li>
+					<li>
+						<a href="#">Exceptions</a>
+					</li>
+					<li>
+						<a href="#">Download Data</a>
+					</li>
+					<li>
+						<a href="#" id="results">Results Summary</a>
+					</li>
+				</ul>
+				<div style="clear:left;"></div>
+				<div class="panes">
+					<div style="display:none;">
+						<table id="stats" class="stats">
+							<thead>
+								<tr>
+									<th class="stats_label" href="#" data-sortkey="method">Type</th>
+									<th class="stats_label" href="#" data-sortkey="name">Name</th>
+									<th class="stats_label numeric" href="#" data-sortkey="num_requests" title="Number of successful requests"># requests</th>
+									<th class="stats_label numeric" href="#" data-sortkey="num_failures" title="Number of failures"># fails</th>
+									<th class="stats_label numeric" href="#" data-sortkey="median_response_time" title="Median response time">Median</th>
+									<th class="stats_label numeric" href="#" data-sortkey="avg_response_time" title="Average response time">Average</th>
+									<th class="stats_label numeric" href="#" data-sortkey="min_response_time" title="Min response time">Min</th>
+									<th class="stats_label numeric" href="#" data-sortkey="max_response_time" title="Max response time">Max</th>
+									<th class="stats_label numeric" href="#" data-sortkey="avg_content_length" title="Average response size">Content Size</th>
+									<th class="stats_label numeric" href="#" data-sortkey="current_rps" title="Current number of requests per second"># reqs/sec</th>
+									<th class="stats_label numeric" href="#" data-sortkey="percentile" title="95th Percentile">95th Percentile</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+					<div style="display:none;">
+						<table id="errors" class="stats">
+							<thead>
+								<th class="error_count stats_label" data-sortkey="1"># fails</th>
+								<th class="stats_label" href="#" data-sortkey="method">Method</th>
+								<th class="stats_label" href="#" data-sortkey="name">Name</th>
+								<th class="error_type stats_label" data-sortkey="0">Type</th>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+					<div style="display:none;">
+						<table id="exceptions" class="stats">
+							<thead>
+								<th class="exception_occurences stats_label" data-sortkey="1"># occurences</th>
+								<th class="exception_traceback stats_label" data-sortkey="0">Traceback</th>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+					<div style="display:none;">
+						<div style="margin-top:20px;">
+							<a href="/stats/requests/csv">Download request statistics CSV</a>
+							<br>
+							<a href="/stats/distribution/csv">Download response time distribution CSV</a>
+							<br>
+							<a href="/exceptions/csv">Download exceptions CSV</a>
+						</div>
+					</div>
+					<div style="display:none;">
+						<table id="stats" class="stats">
+							<thead>
+								<tr>
+									<th class="stats_label" href="#" data-sortkey="method">Type</th>
+									<th class="stats_label" href="#" data-sortkey="name">Name</th>
+									<th class="stats_label numeric" href="#" data-sortkey="num_requests" title="Number of successful requests"># requests</th>
+									<th class="stats_label numeric" href="#" data-sortkey="num_failures" title="Number of failures"># fails</th>
+									<th class="stats_label numeric" href="#" data-sortkey="median_response_time" title="Median response time">Median</th>
+									<th class="stats_label numeric" href="#" data-sortkey="avg_response_time" title="Average response time">Average</th>
+									<th class="stats_label numeric" href="#" data-sortkey="min_response_time" title="Min response time">Min</th>
+									<th class="stats_label numeric" href="#" data-sortkey="max_response_time" title="Max response time">Max</th>
+									<th class="stats_label numeric" href="#" data-sortkey="avg_content_length" title="Average response size">Content Size</th>
+									<th class="stats_label numeric" href="#" data-sortkey="current_rps" title="Current number of requests per second"># reqs/sec</th>
+									<th class="stats_label numeric" href="#" data-sortkey="percentile" title="95th Percentile">95th Percentile</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+						<div class="graph_container">
 
-        <div class="start" id="start">
-            <div style="position:relative;">
-                <a href="#" class="close_link">Close</a>
-            </div>
-            <div class="padder">
-                <h2>Start new Locust swarm</h2>
-                <form action="/swarm" method="POST" id="swarm_form">
-                    <label for="locust_count">Number of users to simulate</label>
-                    <input type="text" name="locust_count" id="locust_count" class="val" /><br>
-                    <label for="hatch_rate">Hatch rate <span style="color:#8a8a8a;">(users spawned/second)</span></label>
-                    <input type="text" name="hatch_rate" id="hatch_rate" class="val" /><br>
-                    <label for="time_to_run">Specify the time to run the test (time in seconds)</label>
-                    <input type="radio" name="time_to_run" class="time_to_run" value="forever"> forever
-                    <input type="radio" name="time_to_run" class="time_to_run" id = "run_time" value="time_limited" checked> run for
-                    <input type="text" name="run_time_in_seconds" id="run_time_in_seconds" value="30"/>
-                    <input type="image" src="/static/img/start_button.png" value="Start swarming" id="start_button" class="start_button"/>
-                </form>
-                <div style="clear:right;"></div>
-            </div>
-        </div>
+							<div class="area_chart">
+								<div class="chart_title">
+									95th Percentile
+								</div>
+								<div id="percentile">
+									<svg></svg>
+								</div>
+							</div>
 
-        <div class="edit" id="edit">
-            <div style="position:relative;">
-                <a href="#" class="close_link">Close</a>
-            </div>
-            <div class="padder">
-                <h2>Change the locust count</h2>
-                <form action="/swarm" method="POST" id="swarm_form">
-                    <label for="locust_count">Number of users to simulate</label>
-                    <input type="text" name="locust_count" id="new_locust_count" class="val" /><br>
-                    <label for="hatch_rate">Hatch rate <span style="color:#8a8a8a;">(users spawned/second)</span></label>
-                    <input type="text" name="hatch_rate" id="new_hatch_rate" class="val" /><br>
-                    <label for="time_to_run">Specify the time to run the test (time in seconds)</label>
-                    <input type="radio" name="time_to_run" class="time_to_run" value="forever"> forever
-                    <input type="radio" name="time_to_run" class="time_to_run" id = "run_time" value="time_limited" checked> run for
-                    <input type="text" name="run_time_in_seconds" id="run_time_in_seconds" value="30"/>
-                    <input type="image" src="/static/img/start_button.png" value="Start swarming"  id="edit_button" class="start_button"/>
-                </form>
-                <div style="clear:right;"></div>
-            </div>
-        </div>
+							<div class="area_chart">
+								<div class="chart_title">
+									Load
+								</div>
+								<svg id="loadChart"></svg>
+							</div>
 
-        <div class="status" id="status">
-            <ul class="tabs">
-                <li><a href="#">Statistics</a></li>
-                <li><a href="#">Failures</a></li>
-                <li><a href="#">Exceptions</a></li>
-                <li><a href="#">Download Data</a></li>
-                <li><a href="#" id="results">Results Summary</a></li>
-            </ul>
-            <div style="clear:left;"></div>
-            <div class="panes">
-                <div style="display:none;">
-                    <table id="stats" class="stats">
-                        <thead>
-                            <tr>
-                                <th class="stats_label" href="#" data-sortkey="method">Type</th>
-                                <th class="stats_label" href="#" data-sortkey="name">Name</th>
-                                <th class="stats_label numeric" href="#" data-sortkey="num_requests" title="Number of successful requests"># requests</th>
-                                <th class="stats_label numeric" href="#" data-sortkey="num_failures" title="Number of failures"># fails</th>
-                                <th class="stats_label numeric" href="#" data-sortkey="median_response_time" title="Median response time">Median</th>
-                                <th class="stats_label numeric" href="#" data-sortkey="avg_response_time" title="Average response time">Average</th>
-                                <th class="stats_label numeric" href="#" data-sortkey="min_response_time" title="Min response time">Min</th>
-                                <th class="stats_label numeric" href="#" data-sortkey="max_response_time" title="Max response time">Max</th>
-                                <th class="stats_label numeric" href="#" data-sortkey="avg_content_length" title="Average response size">Content Size</th>
-                                <th class="stats_label numeric" href="#" data-sortkey="current_rps" title="Current number of requests per second"># reqs/sec</th>
-                                <th class="stats_label numeric" href="#" data-sortkey="percentile" title="95th Percentile">95th Percentile</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-                <div style="display:none;">
-                    <table id="errors" class="stats">
-                        <thead>
-                            <th class="error_count stats_label" data-sortkey="1"># fails</th>
-                            <th class="stats_label" href="#" data-sortkey="method">Method</th>
-                            <th class="stats_label" href="#" data-sortkey="name">Name</th>
-                            <th class="error_type stats_label" data-sortkey="0">Type</th>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-                <div style="display:none;">
-                    <table id="exceptions" class="stats">
-                        <thead>
-                            <th class="exception_occurences stats_label" data-sortkey="1"># occurences</th>
-                            <th class="exception_traceback stats_label" data-sortkey="0">Traceback</th>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-                <div style="display:none;">
-                    <div style="margin-top:20px;">
-                        <a href="/stats/requests/csv">Download request statistics CSV</a><br>
-                        <a href="/stats/distribution/csv">Download response time distribution CSV</a><br>
-                        <a href="/exceptions/csv">Download exceptions CSV</a>
-                    </div>
-                </div>
-                <div style="display:none;">
-                      <table id="stats" class="stats">
-                          <thead>
-                              <tr>
-                                  <th class="stats_label" href="#" data-sortkey="method">Type</th>
-                                  <th class="stats_label" href="#" data-sortkey="name">Name</th>
-                                  <th class="stats_label numeric" href="#" data-sortkey="num_requests" title="Number of successful requests"># requests</th>
-                                  <th class="stats_label numeric" href="#" data-sortkey="num_failures" title="Number of failures"># fails</th>
-                                  <th class="stats_label numeric" href="#" data-sortkey="median_response_time" title="Median response time">Median</th>
-                                  <th class="stats_label numeric" href="#" data-sortkey="avg_response_time" title="Average response time">Average</th>
-                                  <th class="stats_label numeric" href="#" data-sortkey="min_response_time" title="Min response time">Min</th>
-                                  <th class="stats_label numeric" href="#" data-sortkey="max_response_time" title="Max response time">Max</th>
-                                  <th class="stats_label numeric" href="#" data-sortkey="avg_content_length" title="Average response size">Content Size</th>
-                                  <th class="stats_label numeric" href="#" data-sortkey="current_rps" title="Current number of requests per second"># reqs/sec</th>
-                                  <th class="stats_label numeric" href="#" data-sortkey="percentile" title="95th Percentile">95th Percentile</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                          </tbody>
-                      </table>
+							<div class="area_chart">
+								<div class="chart_title">
+									Requests
+								</div>
+								<svg id="requestChart"></svg>
+							</div>
 
+						</div>
 
+					</div>
+				</div>
+			</div>
+		</div>
 
-                    <div class="graph_container">
+		<div class="about" style="display:none;">
+			<div style="position:relative;">
+				<a href="#" class="close_link">Close</a>
+			</div>
+			<div class="padder">
+				<h1>About</h1>
+				<p>
+					The original idea for Locust was Carl Byström's who made a first proof of concept in June 2010.
+					Jonatan Heyman picked up Locust in January 2011, implemented the current concept of Locust classes
+					and made it work distributed across multiple machines.
+				</p>
+				<p>
+					Jonatan, Carl and Joakim Hamrén has continued the development of Locust at their job,
+					ESN Social Software, who have adopted Locust as an inhouse Open Source project.
+				</p>
 
-                      <div class="area_chart1" id="" style="height:350px">
-                        <div class="chart_title"> Percentile </div>
-                        <div id="searchVolume"></div>
-                      </div>
-                			<div class="area_chart">
-                        <div class="chart_title"> Load </div>
-                				<svg id="loadChart"></svg>
-                			</div>
-                			<div class="area_chart">
-                          <div class="chart_title"> Requests </div>
-                				<svg id="requestChart"></svg>
-                			</div>
+				<h1>Authors and Copyright</h1>
+				<a href="http://cgbystrom.com/">Carl Byström</a> (<a href="http://twitter.com/cgbystrom/">@cgbystrom</a>)
+				<br>
+				<a href="http://heyman.info/">Jonatan Heyman</a> (<a href="http://twitter.com/jonatanheyman/">@jonatanheyman</a>)
+				<br>
+				Joakim Hamrén (<a href="http://twitter.com/Jahaaja/">@jahaaja</a>)
+				<br>
+				<a href="http://esn.me/">ESN Social Software</a> (<a href="http://twitter.com/uprise_ea/">@uprise_ea</a>)
+				<br>
+				Hugo Heyman (<a href="http://twitter.com/hugoheyman/">@hugoheyman</a>)
 
+				<h1>License</h1>
+				Open source licensed under the MIT license.
 
+				<h1>Version</h1>
+				{{version}}
+				<br>
+				<a href="http://locust.io/">http://locust.io</a>
+			</div>
+		</div>
+		</div>
 
+		<script type="text/javascript" src="/static/jquery-1.4.min.js"></script>
+		<script type="text/javascript" src="/static/jquery.jqote2.min.js"></script>
+		<script type="text/javascript" src="/static/jquery.tools.min.js"></script>
+		<script type="text/javascript" src="/static/nv.d3.js"></script>
+		<script type="text/x-jqote-template" id="stats-template">
+			<![CDATA[
+			<tr class="<%=(alternate ? "dark" : "")%> <%=(this.name == "Total" ? "total" : "")%>">
+			<td><%= (this.method ? this.method : "") %></td>
+			<td><%= this.name %></td>
+			<td class="numeric"><%= this.num_requests %></td>
+			<td class="numeric"><%= this.num_failures %></td>
+			<td class="numeric"><%= Math.round(this.median_response_time) %></td>
+			<td class="numeric"><%= Math.round(this.avg_response_time) %></td>
+			<td class="numeric"><%= this.min_response_time %></td>
+			<td class="numeric"><%= this.max_response_time %></td>
+			<td class="numeric"><%= Math.round(this.avg_content_length) %></td>
+			<td class="numeric"><%= Math.round(this.current_rps*100)/100 %></td>
+			<td class="numeric"><%= Math.round(this.percentile)%></td>
+			</tr>
+			<% alternate = !alternate; %>
+			]]>
+		</script>
+		<script type="text/x-jqote-template" id="errors-template">
+			<![CDATA[
+			<tr class="<%=(alternate ? "dark" : "")%>">
+			<td><%= this.occurences %></td>
+			<td><%= this.method %></td>
+			<td><%= this.name %></td>
+			<td><%= function(e) { return e.replace("<", "&lt;"); }(this.error) %></td>
+			</tr>
+			<% alternate = !alternate; %>
+			]]>
+		</script>
+		<script type="text/x-jqote-template" id="exceptions-template">
+			<![CDATA[
+			<tr class="<%=(alternate ? "dark" : "")%>">
+			<td class="occurences"><%= this.count %></td>
+			<td class="traceback" title="Occured on: <%= this.nodes %>"><%= function(e) { return e.replace("<", "&lt;"); }(this.traceback) %>
+			<%= function(e) { return e.replace("<", "&lt;"); }(this.msg) %></td>
+			</tr>
+			<% alternate = !alternate; %>
+			]]>
+		</script>
+		<script>
+			$(document).ready(function() {
 
+				setInterval(function() {
+					$('#results').trigger('click');
+				}, 10 * 1000);
 
-                </div>
-              </div>
-      </div>
-  </div>
-</div>
+				$('#results').click(function() {
 
+					$.get('/stats/requests', function(data) {
+						$('#percentile svg').empty();
+						percentile(data);
+					});
 
+					$.get('/stats-summary', function(data) {
+						updateLineChart(data);
+					});
 
-        <div class="about" style="display:none;">
-            <div style="position:relative;">
-                <a href="#" class="close_link">Close</a>
-            </div>
-            <div class="padder">
-                <h1>About</h1>
-                <p>
-                    The original idea for Locust was Carl Byström's who made a first proof of concept in June 2010.
-                    Jonatan Heyman picked up Locust in January 2011, implemented the current concept of Locust classes
-                    and made it work distributed across multiple machines.
-                </p>
-                <p>
-                    Jonatan, Carl and Joakim Hamrén has continued the development of Locust at their job,
-                    ESN Social Software, who have adopted Locust as an inhouse Open Source project.
-                </p>
+					
 
-                <h1>Authors and Copyright</h1>
-                <a href="http://cgbystrom.com/">Carl Byström</a> (<a href="http://twitter.com/cgbystrom/">@cgbystrom</a>)<br>
-                <a href="http://heyman.info/">Jonatan Heyman</a> (<a href="http://twitter.com/jonatanheyman/">@jonatanheyman</a>)<br>
-                Joakim Hamrén (<a href="http://twitter.com/Jahaaja/">@jahaaja</a>)<br>
-                <a href="http://esn.me/">ESN Social Software</a> (<a href="http://twitter.com/uprise_ea/">@uprise_ea</a>)<br>
-                Hugo Heyman (<a href="http://twitter.com/hugoheyman/">@hugoheyman</a>)
+				});
 
+			});
 
-                <h1>License</h1>
-                Open source licensed under the MIT license.
+			
 
-                <h1>Version</h1>
-                {{version}}<br>
-                <a href="http://locust.io/">http://locust.io</a>
-            </div>
-        </div>
-    </div>
+			function percentile(data) {
+				var data = $.parseJSON(data);
+				var getData = data.stats;
 
-    <script type="text/javascript" src="/static/jquery-1.4.min.js"></script>
-    <script type="text/javascript" src="/static/jquery.jqote2.min.js"></script>
-    <script type="text/javascript" src="/static/jquery.tools.min.js"></script>
-    <script type="text/javascript" src="/static/nv.d3.js"></script>
-    <script type="text/x-jqote-template" id="stats-template">
-        <![CDATA[
-        <tr class="<%=(alternate ? "dark" : "")%> <%=(this.name == "Total" ? "total" : "")%>">
-            <td><%= (this.method ? this.method : "") %></td>
-            <td><%= this.name %></td>
-            <td class="numeric"><%= this.num_requests %></td>
-            <td class="numeric"><%= this.num_failures %></td>
-            <td class="numeric"><%= Math.round(this.median_response_time) %></td>
-            <td class="numeric"><%= Math.round(this.avg_response_time) %></td>
-            <td class="numeric"><%= this.min_response_time %></td>
-            <td class="numeric"><%= this.max_response_time %></td>
-            <td class="numeric"><%= Math.round(this.avg_content_length) %></td>
-            <td class="numeric"><%= Math.round(this.current_rps*100)/100 %></td>
-            <td class="numeric"><%= Math.round(this.percentile)%></td>
-        </tr>
-        <% alternate = !alternate; %>
-        ]]>
-    </script>
-    <script type="text/x-jqote-template" id="errors-template">
-        <![CDATA[
-        <tr class="<%=(alternate ? "dark" : "")%>">
-            <td><%= this.occurences %></td>
-            <td><%= this.method %></td>
-            <td><%= this.name %></td>
-            <td><%= function(e) { return e.replace("<", "&lt;"); }(this.error) %></td>
-        </tr>
-        <% alternate = !alternate; %>
-        ]]>
-    </script>
-    <script type="text/x-jqote-template" id="exceptions-template">
-        <![CDATA[
-        <tr class="<%=(alternate ? "dark" : "")%>">
-            <td class="occurences"><%= this.count %></td>
-            <td class="traceback" title="Occured on: <%= this.nodes %>"><%= function(e) { return e.replace("<", "&lt;"); }(this.traceback) %>
-<%= function(e) { return e.replace("<", "&lt;"); }(this.msg) %></td>
-        </tr>
-        <% alternate = !alternate; %>
-        ]]>
-    </script>
-<script>
+				if (getData.length > 0) {
 
+					var data = [];
 
+					var graphObj1 = {};
+					var graphObj2 = {};
+					graphObj1.key = "Max Response Time";
+					graphObj2.key = "95th Percentile";
 
-$(document).ready(function (){
-  $('#results').click(function(){
-    $.get('/stats/requests', function (data) {
-        updateData(data);
-    });
-    $.get('/stats-summary', function(data) {
-        updateLineChart(data);
-    });
-  });
+					graphObj1.nonStackable = false;
+					graphObj2.nonStackable = false;
 
-})
+					var arrayValue1 = [];
+					var arrayValue2 = [];
 
+				}
+				for (index in getData) {
 
-  function updateData(data) {
-    data = JSON.parse(data);
-    var jsonData = data.stats;
-    var arrayData = new Array();
-    for(index in jsonData) {
-    var name = jsonData[index].name;
-     var max_response_time = jsonData[index].max_response_time;
-     var percentile = jsonData[index].percentile;
-     var newObj= {};
-     newObj.name = name;
-     newObj.max_response_time = max_response_time;
-     if(percentile == null) {
-       percentile = 0;
-     }
-     newObj.percentile = percentile;
-     arrayData.push(newObj);
-  }
-         updategraph(arrayData);
-  }
+					var obj1 = {};
+					var obj2 = {};
 
+					var xValue = getData[index].name;
+					var yValue1 = getData[index].max_response_time;
+					var yValue2 = getData[index].percentile;
 
-function updategraph(dataset){
-console.log(dataset);
-$('#searchVolume').empty();
-var widthContent = $('#searchVolume').width();
-var margin = {top: 25, right: 10, bottom: 35, left: 100},
-              w = widthContent - margin.left - margin.right,
-              h = 250 - margin.top - margin.bottom;
-var padding = 10;
-var colors =	{0:	["Local", "#377EB8"],1:	["Global", "#4DAF4A"]};
-var svg = d3.select("#searchVolume ")
-    .append("svg")
-    .attr("width", "95%")
-    .attr("height", "500px")
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + 55 + ")");
+					obj1.x = xValue;
+					obj1.y = yValue1;
+					arrayValue1.push(obj1);
 
+					obj2.x = xValue;
+					obj2.y = yValue2;
+					arrayValue2.push(obj2);
+				}
 
-  var xScale = d3.scale.ordinal()
-          .domain(d3.range(dataset.length))
-          .rangeRoundBands([0, w], 0.05);
-  // ternary operator to determine if global or local has a larger scale
-  var yScale = d3.scale.linear()
-          .domain([0, d3.max(dataset, function(d) { return (d.percentile > d.max_response_time) ? d.percentile : d.max_response_time;})])
-          .range([h, 0]);
+				graphObj1.values = arrayValue1;
+				graphObj2.values = arrayValue2;
+				var finalGraphValue = [];
+				finalGraphValue.push(graphObj1);
+				finalGraphValue.push(graphObj2);
 
-  var xAxis = d3.svg.axis()
-          .scale(xScale)
-          .orient("bottom");
-  var yAxis = d3.svg.axis()
-          .scale(yScale)
-          .orient("left")
-          .ticks(5);
-var max_response_time = function(d) {
-return d.max_response_time;
-};
-var cpc = function(d) {
-return d.cpc;
-};
+				nv.addGraph({
+					generate : function() {
 
-var commaFormat = d3.format(',');
+						//var width = nv.utils.windowSize().width, height = 400;
 
+						var width = $('#percentile').width(), height = 350;
+						chart = nv.models.multiBarChart().x(function(d) {
+							return d.x;
+						}).y(function(d) {
+							return d.y;
+						}).color(['#aec7e8', '#7b94b5', '#486192']).stacked(true)
+						//.margin({top:150,right:150,bottom:150,left:150})
+						//.width(width).height(height);
+						.reduceXTicks(false).rotateLabels(90)
 
+						//var width = nv.utils.windowSize().width, height = nv.utils.windowSize().height;
+						var chart = nv.models.multiBarChart().width(width).height(height).stacked(true);
 
+						//chart.xAxis.tickValues([09999, 1, 2, 3, 4, 5, 6])
 
-var sets = svg.selectAll(".set")
-.data(dataset)
-.enter()
-.append("g")
-.attr("class","set")
-.attr("transform",function(d,i){
-   return "translate(" + xScale(i) + ",0)";
-});
-var xAxis = d3.svg.axis()
-.scale(xScale)
-.tickFormat(function(d) { return dataset[d].name; })
-.orient("bottom");
-sets.append("rect")
-  .attr("class","percentile")
-.attr("width", xScale.rangeBand()/2)
-.attr("y", function(d) {
-  return yScale(d.percentile);
-})
-  .attr("x", xScale.rangeBand()/2)
-  .attr("height", function(d){
-      return h - yScale(d.percentile);
-  })
-.attr("fill", colors[0][1])
-.append("text")
- .text(function(d) {
-  return commaFormat(d.percentile);
- })
- .attr("text-anchor", "middle")
- .attr("x", function(d, i) {
-  return xScale(i) + xScale.rangeBand() / 2;
- })
- .attr("y", function(d) {
-  return h - yScale(d.percentile) + 14;
- })
- .attr("font-family", "sans-serif")
- .attr("font-size", "11px")
- .attr("fill", "white")
-  ;
+						chart.dispatch.on('renderEnd', function() {
+							console.log('Render Complete');
+						});
 
-  sets.append("rect")
-                        .attr("class","max_response_time")
-                    	.attr("width", xScale.rangeBand()/2)
-                    	.attr("y", function(d) {
-                    		return yScale(d.max_response_time);
-                    	})
-                        .attr("height", function(d){
-                            return h - yScale(d.max_response_time);
-                        })
-                    	.attr("fill", colors[1][1])
-                    	.append("text")
-                    	.text(function(d) {
-                    		return commaFormat(d.max_response_time);
-                    	})
-                    	.attr("text-anchor", "middle")
-                    	.attr("x", function(d, i) {
-                    		return xScale(i) + xScale.rangeBand() / 2;
-                    	})
-                    	.attr("y", function(d) {
-                    		return h - yScale(d.max_response_time) + 14;
-                    	})
-                    	.attr("font-family", "sans-serif")
-                    	.attr("font-size", "7px")
-                    	.attr("fill", "red")
-                    	;
+						var svg = d3.select('#percentile svg').datum(finalGraphValue);
+						svg.transition().duration(0).call(chart);
 
-svg.append("g") // Add the X Axis
-.attr("class", "x axis")
-.attr("transform", "translate(0," + (h) + ")")
-.call(xAxis)
+						return chart;
+					},
+					callback : function(graph) {
+						/*
+						 nv.utils.windowResize(function() {
+						 var width = nv.utils.windowSize().width;
+						 var height = nv.utils.windowSize().height;
+						 graph.width(width).height(height);
 
-.selectAll("text") .style("text-anchor", "end") .attr("dx", "-.8em") .attr("dy", ".15em") .attr("transform", "rotate(-20)" );
-// yAxis
-svg.append("g")
-.attr("class", "y axis")
-.attr("transform", "translate(0 ,0)")
-.call(yAxis)
-;
-// xAxis label
-svg.append("text")
-.attr("transform", "translate(" + (w / 2) + " ," + (h + margin.bottom - 5) +")")
-.style("text-anchor", "middle");
-//.text("Keyword");
-//yAxis label
-svg.append("text")
-  .attr("transform", "rotate(-90)")
-  .attr("y", 0 - margin.left)
-  .attr("x", 0 - (h / 2))
-  .attr("dy", "1em")
-  .style("text-anchor", "middle");
-  //.text("Searches");
+						 d3.select('#percentile svg').attr('width', width).attr('height', height).transition().duration(0).call(graph);
 
-// Title
-svg.append("text")
-  .attr("x", (w / 2))
-  .attr("y", 0 - (margin.top / 2))
-  .attr("text-anchor", "middle")
-  .style("font-size", "16px")
-  .style("text-decoration", "underline");
-//	.text("Global & Local Searches");
-var legend = svg.append("g")
- .attr("class", "legend")
- //.attr("x", w - 65)
- //.attr("y", 50)
- .attr("height", 100)
- .attr("width", 100)
- .attr('transform', 'translate(-20,50)');
+						 });*/
 
- legend.selectAll('text')
-.data(dataset)
-.enter()
-.attr("x", w - 52)
-.attr("y", function(d, i) {
- return i * 20 + 9;
-})
-.text(function(d) {
- var text = colors[dataset.indexOf(d)][0];
- return text;
-});
-}
-function updateLineChart(data) {
-  var loadGraphArray = [];
+					}
+				});
+
+			}
+
+			function updateLineChart(data) {
+				var loadGraphArray = [];
 				var requestGraphArray = [];
 				var flagRequest = 0;
 				var flagLoag = 0;
@@ -573,6 +465,7 @@ function updateLineChart(data) {
 						}
 						return 0;
 					});
+
 					gObj.values = sortgraphValues;
 
 					if (data[indexValue].values.length > 0) {
@@ -603,29 +496,55 @@ function updateLineChart(data) {
 						"id" : "requestChart"
 					}
 				}];
-
-				var chartId1 = 'loadChart';
-				var chartId2 = 'requestChart'
 				if (flagLoag) {
 					var dataDetails = {};
 					dataDetails.data = loadGraphArray;
 					dataDetails.config = config[0].loadSetting;
-					//chart.renderChart(chartId1, loadGraphArray);
-					chart.renderChart(dataDetails);
+					//chart.renderAreaChart(chartId1, loadGraphArray);
+					chart.renderAreaChart(dataDetails);
 				}
 				if (flagRequest) {
 					var dataDetails = {};
 					dataDetails.data = requestGraphArray;
 					dataDetails.config = config[0].requestSetting;
-					//chart.renderChart(chartId2, requestGraphArray);
-					chart.renderChart(dataDetails);
+					//chart.renderAreaChart(chartId2, requestGraphArray);
+					chart.renderAreaChart(dataDetails);
 				}
 			}
 
 			var chart = {
-				renderChart : function(dataInfo) {
+				renderBarChart : function(dataInfo) {
+					$('#percentile svg').empty();
+					nv.addGraph({
+						generate : function() {
+							var width = nv.utils.windowSize().width, height = nv.utils.windowSize().height;
+							var chart = nv.models.multiBarChart().width(width).height(height).stacked(false);
+
+							chart.dispatch.on('renderEnd', function() {
+								console.log('Render Complete');
+							});
+
+							var svg = d3.select('#percentileChart').datum(dataInfo);
+							svg.transition().duration(0).call(chart);
+							return chart;
+						},
+						callback : function(graph) {
+							nv.utils.windowResize(function() {
+								var width = nv.utils.windowSize().width;
+								var height = nv.utils.windowSize().height;
+								graph.width(width).height(height);
+								d3.select('#percentileChart').attr('width', width).attr('height', height).transition().duration(0).call(graph);
+
+							});
+						}
+					});
+				},
+				renderAreaChart : function(dataInfo) {
 					var chartId = dataInfo.config.id
 					var histcatexplong = dataInfo.data;
+					console.log('histcatexplong');
+					
+					
 					var yLabel = dataInfo.config.yLabel;
 					var xLabel = dataInfo.config.xLabel;
 
@@ -634,9 +553,14 @@ function updateLineChart(data) {
 					var chart;
 					nv.addGraph(function() {
 						chart = nv.models.stackedAreaChart().showControls(false).useInteractiveGuideline(true).x(function(d) {
-							return d[0]
+							return d[0];
 						}).y(function(d) {
-							return d[1]
+
+							var yval = d[1];
+							if (isNaN(yval)) {
+								yval = 0;
+							}
+							return yval;
 						}).controlLabels({
 							stacked : "Stacked"
 						}).duration(300);
@@ -681,11 +605,10 @@ function updateLineChart(data) {
 					});
 
 				}
-}
+			}
 
-</script>
+		</script>
 
-
-  <script type="text/javascript" src="/static/locust.js"></script>
-</body>
+		<script type="text/javascript" src="/static/locust.js"></script>
+	</body>
 </html>

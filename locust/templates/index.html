@@ -85,12 +85,13 @@
 						<label for="hatch_rate">Hatch rate <span style="color:#8a8a8a;">(users spawned/second)</span></label>
 						<input type="text" name="hatch_rate" id="hatch_rate" class="val" />
 						<br>
-						<label for="time_to_run">Specify the time to run the test (time in seconds)</label>
+						<label for="time_to_run">Specify the time to run the test</label>
 						<input type="radio" name="time_to_run" class="time_to_run" value="forever">
 						forever
 						<input type="radio" name="time_to_run" class="time_to_run" id = "run_time" value="time_limited" checked>
 						run for
 						<input type="text" name="run_time_in_seconds" id="run_time_in_seconds" value="30"/>
+						<span style="color:#8a8a8a;">minutes</span></label>
 						<input type="image" src="/static/img/start_button.png" value="Start swarming" id="start_button" class="start_button"/>
 					</form>
 					<div style="clear:right;"></div>
@@ -110,12 +111,13 @@
 						<label for="hatch_rate">Hatch rate <span style="color:#8a8a8a;">(users spawned/second)</span></label>
 						<input type="text" name="hatch_rate" id="new_hatch_rate" class="val" />
 						<br>
-						<label for="time_to_run">Specify the time to run the test (time in seconds)</label>
+						<label for="time_to_run">Specify the time to run the test</label>
 						<input type="radio" name="time_to_run" class="time_to_run" value="forever">
 						forever
 						<input type="radio" name="time_to_run" class="time_to_run" id = "run_time" value="time_limited" checked>
 						run for
 						<input type="text" name="run_time_in_seconds" id="run_time_in_seconds" value="30"/>
+						<span style="color:#8a8a8a;">minutes</span></label>
 						<input type="image" src="/static/img/start_button.png" value="Start swarming"  id="edit_button" class="start_button"/>
 					</form>
 					<div style="clear:right;"></div>
@@ -341,13 +343,13 @@
 						updateLineChart(data);
 					});
 
-					
+
 
 				});
 
 			});
 
-			
+
 
 			function percentile(data) {
 				var data = $.parseJSON(data);
@@ -543,8 +545,8 @@
 					var chartId = dataInfo.config.id
 					var histcatexplong = dataInfo.data;
 					console.log('histcatexplong');
-					
-					
+
+
 					var yLabel = dataInfo.config.yLabel;
 					var xLabel = dataInfo.config.xLabel;
 

@@ -329,9 +329,13 @@
 		<script>
 			$(document).ready(function() {
 
-				setInterval(function() {
+				var timer = setInterval(function() {
 					$('#results').trigger('click');
 				}, 10 * 1000);
+
+				$('#box_stop').click(function() {
+					clearInterval(timer);
+				});
 
 				$('#results').click(function() {
 
@@ -413,7 +417,7 @@
 
 						//var width = nv.utils.windowSize().width, height = nv.utils.windowSize().height;
 						var chart = nv.models.multiBarChart().width(width).height(height).stacked(true);
-
+						//chart.yAxis.tickFormat(d3.format(',.0f'));
 						//chart.xAxis.tickValues([09999, 1, 2, 3, 4, 5, 6])
 
 						chart.dispatch.on('renderEnd', function() {
@@ -526,7 +530,7 @@
 							chart.dispatch.on('renderEnd', function() {
 								console.log('Render Complete');
 							});
-				
+
 
 							var svg = d3.select('#percentileChart').datum(dataInfo);
 							svg.transition().duration(0).call(chart);

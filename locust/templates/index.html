@@ -105,7 +105,7 @@
 				</div>
 				<div class="padder">
 					<h2>Change the locust count</h2>
-					<form action="/swarm" method="POST" id="swarm_form">
+					<form action="/swarm" method="POST" id="edit_form">
 						<label for="locust_count">Number of users to simulate</label>
 						<input type="text" name="locust_count" id="new_locust_count" class="val" />
 						<br>
@@ -331,7 +331,7 @@
 
 				var timer = setInterval(function() {
 					$('#results').trigger('click');
-				}, 10 * 1000);
+				}, 20 * 1000);
 
 				$('#box_stop').click(function() {
 					clearInterval(timer);
@@ -374,7 +374,7 @@
 
 					var arrayValue1 = [];
 					var arrayValue2 = [];
-
+					var tick = [];
 				}
 				for (index in getData) {
 
@@ -382,6 +382,8 @@
 					var obj2 = {};
 
 					var xValue = getData[index].name;
+					tick.push(xValue);
+					console.log(tick)
 					var yValue1 = getData[index].max_response_time;
 					var yValue2 = getData[index].percentile;
 
@@ -402,23 +404,18 @@
 
 				nv.addGraph({
 					generate : function() {
-
-						//var width = nv.utils.windowSize().width, height = 400;
-
 						var width = $('#percentile').width(), height = 350;
 						chart = nv.models.multiBarChart().x(function(d) {
 							return d.x;
 						}).y(function(d) {
 							return d.y;
 						}).color(['#aec7e8', '#7b94b5', '#486192']).stacked(true)
-						//.margin({top:150,right:150,bottom:150,left:150})
-						//.width(width).height(height);
 						.reduceXTicks(false).rotateLabels(90)
+						console.log(tick);
 
-						//var width = nv.utils.windowSize().width, height = nv.utils.windowSize().height;
 						var chart = nv.models.multiBarChart().width(width).height(height).stacked(true);
 						chart.yAxis.tickFormat(d3.format(',.0f'));
-						//chart.xAxis.tickValues([09999, 1, 2, 3, 4, 5, 6])
+
 
 						chart.dispatch.on('renderEnd', function() {
 							console.log('Render Complete');

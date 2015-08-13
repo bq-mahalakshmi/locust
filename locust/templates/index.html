@@ -526,6 +526,7 @@
 							chart.dispatch.on('renderEnd', function() {
 								console.log('Render Complete');
 							});
+				
 
 							var svg = d3.select('#percentileChart').datum(dataInfo);
 							svg.transition().duration(0).call(chart);
@@ -543,15 +544,21 @@
 					});
 				},
 				renderAreaChart : function(dataInfo) {
-					var chartId = dataInfo.config.id
+					$('#' + chartId).empty();
+						$('.nvtooltip').remove();
+					var chartId = dataInfo.config.id;
+
 					var histcatexplong = dataInfo.data;
-					console.log('histcatexplong');
+
+					console.log(histcatexplong);
+
 
 
 					var yLabel = dataInfo.config.yLabel;
 					var xLabel = dataInfo.config.xLabel;
 
-					$('#' + chartId).empty();
+
+
 					var colors = d3.scale.category20();
 					var chart;
 					nv.addGraph(function() {

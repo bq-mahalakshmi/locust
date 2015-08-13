@@ -383,4 +383,7 @@ text {
 #run_time_in_minutes {
 	width: 33px;
 }
+.nv-legendWrap .nv-series:nth-child(8) {
+  display: none;
+}
 /*end*/

@@ -417,7 +417,7 @@
 
 						//var width = nv.utils.windowSize().width, height = nv.utils.windowSize().height;
 						var chart = nv.models.multiBarChart().width(width).height(height).stacked(true);
-						//chart.yAxis.tickFormat(d3.format(',.0f'));
+						chart.yAxis.tickFormat(d3.format(',.0f'));
 						//chart.xAxis.tickValues([09999, 1, 2, 3, 4, 5, 6])
 
 						chart.dispatch.on('renderEnd', function() {

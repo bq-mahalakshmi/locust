@@ -417,7 +417,8 @@
 						var chart = nv.models.multiBarChart().width(width).height(height).stacked(true);
 						chart.yAxis.tickFormat(d3.format(',.0f'));
 
-						chart.xAxis.rotateLabels(-35);	
+					
+
 						chart.dispatch.on('renderEnd', function() {
 							console.log('Render Complete');
 						});

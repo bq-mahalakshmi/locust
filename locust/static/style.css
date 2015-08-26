@@ -320,7 +320,7 @@ ul.tabs li a.current {
 
 .tick line {
 	display: block;
-	opacity: 0.1 !important;
+	opacity: 0 !important;
 }
 .graph_container {
 	width: 100%;
@@ -335,12 +335,12 @@ ul.tabs li a.current {
 }
 .area_chart svg {
 	width: 100%;
-	height: 250px;
+	height: 350px;
 	display: block;
 }
 #percentile svg {
 	width: 100%;
-	height: 500px !important;
+ 	height: 500px !important; 
 }
 
 .area_chart1 svg {
@@ -386,3 +386,10 @@ text {
 }
 
 /*end*/
+
+
+
+/*svg.nvd3-svg {
+  width: 100%;
+  height: 981px !important;
+}*/

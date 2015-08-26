@@ -214,7 +214,9 @@
 							<tbody></tbody>
 						</table>
 						<div class="graph_container">
-
+						
+						
+						
 							<div class="area_chart">
 								<div class="chart_title">
 									95th Percentile
@@ -222,6 +224,7 @@
 								<div id="percentile">
 									<svg></svg>
 								</div>
+								
 							</div>
 
 							<div class="area_chart">
@@ -347,10 +350,33 @@
 					$.get('/stats-summary', function(data) {
 						updateLineChart(data);
 					});
+					
+				if ($("#loadChart").text().length > 0) {
+// 					alert('available');
+					$("#loadChart").parents('.area_chart').hide();
+				    } else{
+ 					/*alert('no data in loadtest');	*/				
+					$("#loadChart").parents('.area_chart').hide();
+					}
+				if ($("#percentile").text().length > 0) {
+// 				    alert('available');
+				    $("#percentile").parents('.area_chart').show();
+				  } else{
+					$("#percentile").parents('.area_chart').hide();
+				
+					}
+				if ($("#requestChart").text().length > 0) {
+				    alert('request is available');
+				    $("#requestChart").parents('.area_chart').show();
+				    }
+				    else{
+//  				    alert('nodata in request graph');
+				    $("#requestChart").parents('.area_chart').hide();
+				    }
+				    
+				 
 
-
-
-				});
+			});
 
 			});
 
@@ -383,7 +409,7 @@
 
 					var xValue = getData[index].name;
 					tick.push(xValue);
-					console.log(tick)
+// 					console.log(tick)
 					var yValue1 = getData[index].max_response_time;
 					var yValue2 = getData[index].percentile;
 
@@ -402,48 +428,59 @@
 				finalGraphValue.push(graphObj1);
 				finalGraphValue.push(graphObj2);
 
-				nv.addGraph({
-					generate : function() {
-						var width = $('#percentile').width(), height = 350;
-						chart = nv.models.multiBarChart().x(function(d) {
-							return d.x;
-						}).y(function(d) {
-							return d.y;
-						}).color(['#aec7e8', '#7b94b5', '#486192']).stacked(true)
-						.reduceXTicks(false).rotateLabels(90)
-						console.log(tick);
 
+				var chart;
+				nv.addGraph(function() {
+				    var width = $('#percentile').width(), height = 450;
+				  
+				    chart = nv.models.multiBarChart()
+				    
+					.x(function(d) { return d.x }) //this part specifically
+					.y(function(d) { return d.y })
+// 					.barColor(d3.scale.category20().range())
+					.color(['#aec7e8', '#7b94b5', '#486192'])
+					.duration(300)
+					.margin({bottom: 100, left: 75, bottom: 140})
+					.rotateLabels(-35)
+					.groupSpacing(0.1)
+// 					
+				    ;
+ 				    
+				    chart.reduceXTicks(false).staggerLabels(true).stacked(true);
+				    chart.xAxis
+// 					
+					.axisLabelDistance(35)
+					.showMaxMin(false)
+// 					.tickFormat(d3.format(',.6f'))
+				    ;
+				    
+// 				    chart = nv.models.multiBarChart().width(width).height(height).stacked(true);
+				    chart.yAxis
+				    .axisLabelDistance(-5)
+				    .tickFormat(d3.format(',.0f'))
+				    ;
+				    
+				    
+				    
+				    chart.dispatch.on('renderEnd', function(){
+					nv.log('Render Complete');
+				    });
+				    
+				    var svg = d3.select('#percentile svg').datum(finalGraphValue);
+				    svg.transition().duration(0).call(chart);
+				    
 
-						var chart = nv.models.multiBarChart().width(width).height(height).stacked(true);
-						chart.yAxis.tickFormat(d3.format(',.0f'));
+				    nv.utils.windowResize(chart.update);
 
-					
-
-						chart.dispatch.on('renderEnd', function() {
-							console.log('Render Complete');
-						});
-
-						var svg = d3.select('#percentile svg').datum(finalGraphValue);
-						svg.transition().duration(0).call(chart);
-
-						return chart;
-					},
-					callback : function(graph) {
-						/*
-						 nv.utils.windowResize(function() {
-						 var width = nv.utils.windowSize().width;
-						 var height = nv.utils.windowSize().height;
-						 graph.width(width).height(height);
-
-						 d3.select('#percentile svg').attr('width', width).attr('height', height).transition().duration(0).call(graph);
-
-						 });*/
-
-					}
+				    return chart;
 				});
+							    
+			
 
 			}
-
+					
+				
+			
 			function updateLineChart(data) {
 				var loadGraphArray = [];
 				var requestGraphArray = [];

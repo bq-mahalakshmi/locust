@@ -262,7 +262,7 @@ svg.nvd3-svg {
     -moz-user-select: none;
     user-select: none;
     display: block;
-    height: 400px;
+/*    height: 660px !important;*/
     width: 100%;
 }
 

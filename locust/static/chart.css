@@ -84,12 +84,12 @@ path {
 }
 .area_chart svg {
   width: 100%;
-  height: 250px;
+  height: 350px;
   display: block;
 }
 .toolTipContent {
   float: left;
-  margin: 5 20px;
+  margin: 520px;
 }
 .titleContentTitle {
   float: left;

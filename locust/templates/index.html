@@ -142,6 +142,7 @@
 					<li>
 						<a href="#" id="results">Results Summary</a>
 					</li>
+
 				</ul>
 				<div style="clear:left;"></div>
 				<div class="panes">
@@ -214,9 +215,9 @@
 							<tbody></tbody>
 						</table>
 						<div class="graph_container">
-						
-						
-						
+
+
+
 							<div class="area_chart">
 								<div class="chart_title">
 									95th Percentile
@@ -224,7 +225,7 @@
 								<div id="percentile">
 									<svg></svg>
 								</div>
-								
+
 							</div>
 
 							<div class="area_chart">
@@ -303,7 +304,7 @@
 			<td class="numeric"><%= this.max_response_time %></td>
 			<td class="numeric"><%= Math.round(this.avg_content_length) %></td>
 			<td class="numeric"><%= Math.round(this.current_rps*100)/100 %></td>
-			<td class="numeric"><%= Math.round(this.percentile)%></td>
+			<td class="numeric"><%= Math.round(this.percentile) %></td>
 			</tr>
 			<% alternate = !alternate; %>
 			]]>
@@ -350,12 +351,12 @@
 					$.get('/stats-summary', function(data) {
 						updateLineChart(data);
 					});
-					
+
 				if ($("#loadChart").text().length > 0) {
 // 					alert('available');
 					$("#loadChart").parents('.area_chart').hide();
 				    } else{
- 					/*alert('no data in loadtest');	*/				
+ 					//alert('no data in loadtest');
 					$("#loadChart").parents('.area_chart').hide();
 					}
 				if ($("#percentile").text().length > 0) {
@@ -363,18 +364,17 @@
 				    $("#percentile").parents('.area_chart').show();
 				  } else{
 					$("#percentile").parents('.area_chart').hide();
-				
+
 					}
 				if ($("#requestChart").text().length > 0) {
-				    alert('request is available');
 				    $("#requestChart").parents('.area_chart').show();
 				    }
 				    else{
 //  				    alert('nodata in request graph');
 				    $("#requestChart").parents('.area_chart').hide();
 				    }
-				    
-				 
+
+
 
 			});
 
@@ -432,9 +432,9 @@
 				var chart;
 				nv.addGraph(function() {
 				    var width = $('#percentile').width(), height = 450;
-				  
+
 				    chart = nv.models.multiBarChart()
-				    
+
 					.x(function(d) { return d.x }) //this part specifically
 					.y(function(d) { return d.y })
 // 					.barColor(d3.scale.category20().range())
@@ -443,44 +443,44 @@
 					.margin({bottom: 100, left: 75, bottom: 140})
 					.rotateLabels(-35)
 					.groupSpacing(0.1)
-// 					
+//
 				    ;
- 				    
+
 				    chart.reduceXTicks(false).staggerLabels(true).stacked(true);
 				    chart.xAxis
-// 					
+//
 					.axisLabelDistance(35)
 					.showMaxMin(false)
 // 					.tickFormat(d3.format(',.6f'))
 				    ;
-				    
+
 // 				    chart = nv.models.multiBarChart().width(width).height(height).stacked(true);
 				    chart.yAxis
 				    .axisLabelDistance(-5)
 				    .tickFormat(d3.format(',.0f'))
 				    ;
-				    
-				    
-				    
+
+
+
 				    chart.dispatch.on('renderEnd', function(){
 					nv.log('Render Complete');
 				    });
-				    
+
 				    var svg = d3.select('#percentile svg').datum(finalGraphValue);
 				    svg.transition().duration(0).call(chart);
-				    
+
 
 				    nv.utils.windowResize(chart.update);
 
 				    return chart;
 				});
-							    
-			
+
+
 
 			}
-					
-				
-			
+
+
+
 			function updateLineChart(data) {
 				var loadGraphArray = [];
 				var requestGraphArray = [];

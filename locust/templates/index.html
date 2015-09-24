@@ -59,6 +59,9 @@
 						<div class="value" id="peakUsers">
 							{{user_count}}
 						</div>
+						<div class="value" id="peakUsers1" style="display:none">
+
+						</div>
 
 					</div>
 					<div class="top_box box_stop box_running" id="box_stop">
@@ -193,6 +196,8 @@
 							<a href="/stats/distribution/csv">Download response time distribution CSV</a>
 							<br>
 							<a href="/exceptions/csv">Download exceptions CSV</a>
+							<br>
+							<a href="/pdf/data">Download pdf</a>
 						</div>
 					</div>
 					<div style="display:none;">
@@ -353,14 +358,11 @@
 					});
 
 				if ($("#loadChart").text().length > 0) {
-				  //alert('data available');
 					$("#loadChart").parents('.area_chart').show();
 				    } else{
- 					//alert('no data in loadtest');
 					$("#loadChart").parents('.area_chart').hide();
 					}
 				if ($("#percentile").text().length > 0) {
-// 				    alert('available');
 				    $("#percentile").parents('.area_chart').show();
 				  } else{
 					$("#percentile").parents('.area_chart').hide();
@@ -370,7 +372,6 @@
 				    $("#requestChart").parents('.area_chart').show();
 				    }
 				    else{
-//  				    alert('nodata in request graph');
 				    $("#requestChart").parents('.area_chart').hide();
 				    }
 

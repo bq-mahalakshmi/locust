@@ -12,6 +12,9 @@ $("#box_stop a").click(function(event) {
     $("a.new_test").show();
     $("a.edit_test").hide();
     $(".user_count").hide();
+    var peakUsers = $('#peakUsers').html();
+    $("#peakUsers1").html(peakUsers).show();
+    $('#peakUsers').hide();
 });
 
 $("#box_reset a").click(function(event) {
@@ -25,6 +28,8 @@ $(".start_button").click(function() {
     if (getValue != 'forever') {
     setTimeout(alertFunc, run_time * 60000);
     }
+    $("#peakUsers1").hide();
+    $('#peakUsers').show();
 });
 
 function alertFunc() {
@@ -36,6 +41,7 @@ $("#new_test").click(function(event) {
     event.preventDefault();
     $("#start").show();
     $("#locust_count").focus().select();
+
 });
 
 $(".edit_test").click(function(event) {
